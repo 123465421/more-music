@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="img/logo3.png" rel="icon" type="image/x-ico">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/parallax/3.1.0/parallax.min.js"></script>
+<style>
+* {
+    cursor: url(img/cursor.png),auto;
+}
+
+body {
+    overflow: hidden;
+}
+        #background{
+          position:fixed;
+          z-index: 0;
+          height:110%;
+          width:110%;
+          background: url('https://t.lizi.moe/pc');
+          background-attachment: fixed;
+          background-repeat: no-repeat;
+          background-size: cover;
+          background-color: rgba(255,255,255,0.5);
+          left: -5% !important;
+          top: -5% !important;
+        }
+
+        #scene{
+          position:fixed;
+          top:0;
+          left:0;
+          height:100%;
+          width:100%;
+        }
+
+#logo {
+    position:absolute;left:0;width:250px;height:250px;
+}
+
+#logo2 {
+    position:absolute;right:0 !important;width:250px;height:250px;
+}
+
+#logoall {
+    position:fixed;width:500px;left: calc(50% - 250px);bottom:30%;
+}
+    #infocontainer {
+      margin-top: 50px;
+      text-align: center;
+    }
+    .info-item {
+      margin: 20px;
+    }
+button {
+  font-family: monospace;
+  background-color: rgba(255,255,255,0.6);
+  color: #3b82f6;
+  border: none;
+  border-radius: 15px;
+  width: 50px;
+  height: 25px;
+  transition: 0.3s;
+  margin: 3px;
+  font-family: 'Lato';
+}
+
+button:hover {
+  background-color: #f3f7fe;
+  box-shadow: 0 0 0 3px #f0f0f0;
+}
+    input {
+      border: none;
+      border-radius:10px;
+      background-color:rgba(255,255,255,0.6);
+backdrop-filter: blur(50px);
+    }
+
+    label{
+      background-color:rgba(255,255,255,0.6);
+backdrop-filter: blur(50px);
+      border-radius:10px;
+    }
+
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  src: url('ttf.ttf');
+}
+
+
+body{
+            font-family: 'Lato';
+            letter-spacing: 1px;
+            font-size: 20px;
+}
+
+  input:focus {
+    outline: none;
+  }
+
+input {
+font-family: 'Lato';
+font-size: 20px;
+}
+</style>
+</head>
+<body>
+    <div  id="scene">
+        <div id="background" class="layer" data-depth="0.5" data-limit-x="8" data-limit-x="8"  data-scalar-x="20" data-scalar-y="20"></div>
+    </div>
+    <div id="logoall">
+        <div id="logo">
+            <li data-depth="1" data-limit-x="8" data-limit-x="8"  data-scalar-x="20" data-scalar-y="20" data-invert-x="false" data-invert-y="false"><img src="img/logo.png" height="250px" alt="Old Logo"></li>
+        </div>
+        <div id="logo2">
+            <li data-depth="1" data-limit-x="8" data-limit-x="8"  data-scalar-x="20" data-scalar-y="20" data-invert-x="false" data-invert-y="false"><img src="img/logo3.png" height="250px" alt="New Logo"></li>
+            <li data-depth="1" data-limit-x="8" data-limit-x="8"  data-scalar-x="20" data-scalar-y="20" data-invert-x="false" data-invert-y="true"><span style="font-size:20px;margin-left:35px;">More & More_Music</span></li>
+        </div>
+        </div>
+  <div id="infocontainer" data-invertX="false" data-invertY="false" data-limitX="8" data-limitY="8" data-scalarX="20" data-scalarY="20">
+    <div class="info-item animate__animated animate__fadeInLeft">
+      <!-- 左侧进入的元素 -->
+      <label for="qq">QQ：</label>
+      <input type="text" id="qq" value="2750893539" readonly>
+      <button class="copy-button" onclick="copyText('qq')">复制</button>
+    </div>
+    <div class="info-item animate__animated animate__fadeInRight">
+      <!-- 右侧进入的元素 -->
+      <label for="email">邮箱：</label>
+      <input type="text" id="email" value="more@morechatol.eu.org" readonly>
+      <button class="copy-button" onclick="copyText('email')">复制</button>
+    </div>
+    <div class="info-item animate__animated animate__fadeInLeft">
+      <!-- 左侧进入的元素 -->
+      <label for="name">应用名字：</label>
+      <input type="text" id="name" value="More Music" readonly>
+      <button class="copy-button" onclick="copyText('name')">复制</button>
+    </div>
+    <div class="info-item animate__animated animate__fadeInRight">
+      <!-- 右侧进入的元素 -->
+      <label for="page">网页版：</label>
+      <input type="text" id="copyText" value="https://music.morechatol.eu.org" readonly>
+      <button onclick="copyText('copyText')">复制</button>
+    </div>
+    <div class="info-item animate__animated animate__fadeInLeft">
+      <!-- 左侧进入的元素 -->
+      <label for="version">版本：</label>
+      <input type="text" id="version" value="1.0.0" readonly>
+    </div>
+    <div class="info-item animate__animated animate__fadeInRight">
+      <!-- 右侧进入的元素 -->
+      <label for="framework">使用框架：</label>
+      <input type="text" id="framework" value="NW.js" readonly>
+    </div>
+    <div class="info-item animate__animated animate__fadeInLeft">
+      <!-- 左侧进入的元素 -->
+      <label for="notice">注意事项：</label>
+      <input type="text" id="notice" value="未经作者允许禁止用于贩卖" readonly>
+    </div>
+    <div class="info-item animate__animated animate__fadeInRight">
+      <!-- 右侧进入的元素 -->
+      <label for="author">作者：</label>
+      <input type="text" id="author" value="Moren" readonly>
+    </div>
+<div class="info-item animate__animated animate__fadeInLeft">
+<svg width="25" fill="#0d6efd" viewBox="0 0 16 16"><path d="M12 13c0 1.105-1.12 2-2.5 2S7 14.105 7 13s1.12-2 2.5-2 2.5.895 2.5 2z"/>
+  <path fill-rule="evenodd" d="M12 3v10h-1V3h1z"/>
+  <path d="M11 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 16 2.22V4l-5 1V2.82z"/>
+  <path fill-rule="evenodd" d="M0 11.5a.5.5 0 0 1 .5-.5H4a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 .5 7H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 .5 3H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5z"/>
+</svg>
+<div id="myElement"></div>
+</div>
+  </div>
+<script src="https://cdn.staticfile.org/jquery/2.2.4/jquery.min.js"></script>
+<script>
+  $(document).ready(function() {
+    $('.info-item').each(function(index) {
+      var delay = index * 300; // 每个元素的延迟时间，可根据实际情况调整
+      $(this).delay(delay).queue(function(next) {
+        $(this).addClass('animate__animated animate__fadeIn');
+        $(this).css('opacity', '1');
+        next();
+      });
+    });
+  });
+
+  function copyText(id) {
+    const input = $("#" + id);
+    input.select();
+    input[0].setSelectionRange(0, 99999); // 兼容移动端
+    document.execCommand('copy');
+    input[0].setSelectionRange(0, 0);
+
+    alert(`已复制：${input.val()}`);
+  }
+
+    $(document).ready(function() {
+      setInterval(function() {
+        var name = localStorage.getItem("myName");
+        $("#myElement").text(name);
+      }, 100);
+    });
+
+        var scene = document.getElementById('scene');
+        var parallaxInstance = new Parallax(scene);
+
+        var logo = document.getElementById('logo');
+        var parallaxInstancelogo = new Parallax(logo);
+
+        var logo2 = document.getElementById('logo2');
+        var parallaxInstancelogo2 = new Parallax(logo2);
+</script>
+</body>
+</html>
