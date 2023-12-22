@@ -1041,7 +1041,7 @@ radial-gradient(at 55% 24%, hsla(138,60%,62%,1) 0px, transparent 50%);
 </div>
 <div class="setItem">
   <span class="text">音频可视化圆环开启</span>
-<label class="setswitch">
+  <label class="setswitch">
   <input type="checkbox">
   <span class="setslider" id="setswitch_showaudio"></span>
 </label>
@@ -1162,7 +1162,7 @@ var endx0 = false;
 
     // 检查是否需要播放动画  
     setTimeout(function(){
-        if (JSON.parse(localStorage.getItem("setting")).showaudio == 'no') {  
+        if (localStorage.getItem("setting") == null || JSON.parse(localStorage.getItem("setting")).showaudio == 'no') {  
             requestAnimationFrame(drawSpectrum);
         }
     }, 200);
@@ -1240,8 +1240,8 @@ function drawSpectrum() {
     animationFrameId = requestAnimationFrame(drawSpectrum);  
 
     // 检查是否需要暂停动画  
-    if (JSON.parse(localStorage.getItem("setting")).showaudio == 'yes') {  
-        window.cancelAnimationFrame(animationFrameId);
+    if (localStorage.getItem("setting") == null || JSON.parse(localStorage.getItem("setting")).showaudio == 'no') {} else {
+        cancelAnimationFrame(animationFrameId);console.log(1919);
     } 
 
     setTimeout(function(){ 
