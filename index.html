@@ -3,7 +3,7 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<link href="other/img/logo3.png" rel="icon" type="image/x-ico">
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-		<script src="https://cdn.staticfile.org/jquery/2.2.4/jquery.min.js"></script>
+		<script src="other/jquery.js"></script>
 		<link href="https://cdn.bootcdn.net/ajax/libs/driver.js/0.9.8/driver.min.css" rel="stylesheet">
 		<script src="https://cdn.bootcdn.net/ajax/libs/driver.js/0.9.8/driver.min.js"></script>
 		<script src="https://cdn.bootcdn.net/ajax/libs/dplayer/1.27.1/DPlayer.min.js"></script>
@@ -44,6 +44,7 @@ html {
       background-position: center center;
       background-size: auto 100%;
       background-repeat: no-repeat;
+      display: none;
     }
 
     #hidescreen {
@@ -63,11 +64,12 @@ html {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
+  width: calc(100% - 30px);
   height: 32px; /* 设置拖动区域的高度 */
   -webkit-app-region: drag; /* 设置拖动区域响应鼠标事件 */
   background-color: transparent; /* 设置背景为透明 */
   z-index: 99999;
+  display: none;
 }
 
 #window-controls {
@@ -89,7 +91,7 @@ html {
   margin: 5px;
 }
 
-svg,button,input,img,.sound{
+svg,button:not(#settingBtn, #closeTab),input,img,.sound{
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
     border-radius:20px;
     padding: 2px;
@@ -111,7 +113,7 @@ svg,button,input,img,.sound{
     display: block;
     z-index: 999;
     overflow-y: scroll;
-    box-shadow: 10px 10px 25px rgba(255, 255, 255, 0.2);;
+    box-shadow: 10px 10px 25px rgba(255, 255, 255, 0.2);
 }
 
 #result tr {
@@ -287,11 +289,12 @@ svg,button,input,img,.sound{
     bottom: 5px;
     right: 5px;
     border: none;
+    min-width: 45px;
     width: 45px;
-    height: 45px;
+    height: 45px !important;
     display: none;
     background: rgba(255, 255, 255, 0.3);
-    border-radius: 100%;
+    border-radius: 50% !important;
     color: rgba(255,255,255,0.5);
 }
 
@@ -351,7 +354,7 @@ body {
 ::-webkit-scrollbar {
   display: none;
 }
-button {
+button:not(#settingBtn, #closeTab) {
   font-family: monospace;
   background-color: rgba(255,255,255,0.6);
   color: #3b82f6;
@@ -367,7 +370,7 @@ button {
 button:active {
   transform: scale(0.9);
 }
-  button:not(.dplayer-icon, .imghoverBtnImg button):hover {
+  button:not(.dplayer-icon, .imghoverBtnImg button, #settingBtn):hover {
     background-color: #f3f7fe;
     box-shadow: 0 0 0 3px rgba(255,255,255,0.6);
   }
@@ -524,6 +527,7 @@ div,table {
   width: 40px;
   background-color:white;
   border-radius: 40px;
+  border: none;
 }
 
 #searchTab {
@@ -629,7 +633,7 @@ div#driver-popover-item .driver-popover-footer button {
   font-size: 17px;
   position: fixed;
   z-index: 10000;
-  bottom: 10px;
+  bottom: 30px;
   left: 5px;
   display: inline-block;
   width: 3.5em;
@@ -777,7 +781,7 @@ radial-gradient(at 55% 24%, hsla(138,60%,62%,1) 0px, transparent 50%);
     top: 45px;
     z-index: 2;
     min-height: 30px;
-    min-width: 30px;
+    min-width: 30px !important;
     height: 30px;
     width: 30px;
     border-radius: 50%;
@@ -851,23 +855,131 @@ radial-gradient(at 55% 24%, hsla(138,60%,62%,1) 0px, transparent 50%);
   }  
 }
 
+#settingBtn {
+  position: fixed;
+  top: 20px;
+  right: 0;
+  z-index: 1000000;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 15px 0 0 15px;
+  height: 30px;
+  width: 40px;
+  transition: 0.3s;
+}
+
+#setting {
+  max-width: 60%;
+  width: 40px;
+  height: 30px;
+  position: fixed;
+  top: 20px;
+  right: 0;
+  z-index: 999999;
+  background-color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 15px 0 0 15px;
+  box-shadow: 5px 5px 30px rgba(0, 0, 0, 0.2);
+  transition-duration: 0.3s;
+}
+
+.setItem {
+  border-radius: 10px;
+  width: 96%;
+  background-color: rgba(255,255,255,0.9);
+  padding: 6px;
+  display:flex;
+}
+
+.setItem {
+  margin-top: 8px;
+  margin-left: 2%;
+  display: none;
+}
+
+#setswitch_loading .setswitch{
+  pointer-events: none;
+}
+
+#setswitch_loading .setswitch::before {
+  height: 100%;
+  width: 100%;
+  pointer-events: auto;
+}
+
+.setswitch {
+  font-size: 17px;
+  position: relative;
+  display: inline-block;
+  width: 35px;
+  height: 20px;
+  margin-left: auto;
+}
+
+.setswitch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.setswitch .setslider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #9fccfa;
+  border-radius: 50px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.setswitch .setslider::before {
+  position: absolute;
+  content: "";
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  width: 20px;
+  inset: 0;
+  background-color: white;
+  border-radius: 50px;
+  box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.setswitch input:checked + .setslider {
+  background: #0974f1;
+}
+
+.setswitch input:focus + .setslider {
+  box-shadow: 0 0 1px #0974f1;
+}
+
+.setswitch input:checked + .setslider:before {
+  transform: translateX(16px);
+}
+
+.setItem .text {
+  margin-left: 10px;
+}
+
  @media screen and (max-width: 1355px){
           #result{
             max-width:90%;
          }
 
          #comments {
-            top: 220px;
+            top: 219px;
             right: 50%;
             width: 45%;
-            max-height: calc(98% - 209px);
+            max-height: calc(98% - 219px);
          }
 
          #lyric {
-            top: 220px;
+            top: 219px;
             right: 5%;
             width: 45%;
-            max-height: calc(98% - 209px);
+            max-height: calc(98% - 219px);
         }
 
           #valueList{
@@ -913,6 +1025,29 @@ radial-gradient(at 55% 24%, hsla(138,60%,62%,1) 0px, transparent 50%);
 		<div class="bghover"></div>
                    <div class="img01 imgbg"></div>
                    <div class="img02 imgbg"></div>
+
+<button id="settingBtn"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16">
+  <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
+  <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
+</svg></button>
+<div id="setting" title="setting">
+  <div class="topbar" style="width: 100%;height: 35px;box-shadow: 1px 1px 40px rgba(0, 0, 0, 0.2);display: none;background-color:white;border-radius: 15px 15px 0 0;"><span style="width: 100%;position: absolute;top: 8px;text-align: center">setting</span></div>
+<div class="setItem">
+  <span class="text">启动加载动画开启</span>
+<label class="setswitch">
+  <input type="checkbox">
+  <span class="setslider" id="setswitch_loading"></span>
+</label>
+</div>
+<div class="setItem">
+  <span class="text">音频可视化圆环开启</span>
+<label class="setswitch">
+  <input type="checkbox">
+  <span class="setslider" id="setswitch_showaudio"></span>
+</label>
+</div>
+</div>
+
                 <canvas id="wrap" height="900" width="900" style="position:fixed;left:50%;top:50%;z-index:2;transform:translate(-50%, -50%);max-width: 100%;" name="zoom1"></canvas>
 		<button id="back">返回搜索</button>
 		<button id="showValue">收藏列表</button>
@@ -938,7 +1073,7 @@ radial-gradient(at 55% 24%, hsla(138,60%,62%,1) 0px, transparent 50%);
 				<div id="audio_container"><audio id="audio-player" crossOrigin="anonymous"></audio></div>
 				<div class="audio-controls">
 					<button class="loop-btn" title="单曲循环" style="float:left">
-						<svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+						<svg width="16" fill="currentColor" viewBox="0 0 16 16">
 							<path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z" />
 							<path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z" />
 						</svg>
@@ -995,6 +1130,9 @@ $(document).on("click", ".slider",function(){
                         topTip('<svg fill="#0d6efd" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h6zM5 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H5z"/><path d="M8 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></svg>' + navigator.userAgent);
 
 var audiodisplay = 0;
+var animationFrameId;
+var context;
+var source;
 function audioDisplay() { // 音频可视化
     var wrap = $("#wrap")[0];
     var cxt = wrap.getContext("2d");
@@ -1005,29 +1143,31 @@ if($("#wrap").attr('name') =='zoom1.5'){
     $("#wrap").attr('name', 'zoom1.5')
 }
 
-if (audiodisplay == 0) {
     //获取API
-    var context = new AudioContext;
-
-
-    var source = context.createMediaElementSource(audio);
     var analyser = context.createAnalyser();
     //连接：source → analyser → destination
     source.connect(analyser);
     analyser.connect(context.destination);
-    audiodisplay = audiodisplay+1;
-
     var output = new Uint8Array(180);   
     var length = analyser.frequencyBinCount * 44100 / context.sampleRate | 0;
     //创建数据 
     var output2 = new Uint8Array(length);
+
 var du = 2; //角度  
 var potInt = { x: 300, y: 300 }; //起始坐标  
 var R = 200; //半径  
 var W = 2; //宽  
 var endx = 2*R;
 var endx0 = false;
-(function drawSpectrum() {  
+
+    // 检查是否需要播放动画  
+    setTimeout(function(){
+        if (JSON.parse(localStorage.getItem("setting")).showaudio == 'no') {  
+            requestAnimationFrame(drawSpectrum);
+        }
+    }, 200);
+
+function drawSpectrum() {  
     analyser.getByteFrequencyData(output); //获取频域数据  
     cxt.clearRect(0, 0, wrap.width, wrap.height);  
     if(endx == 0 || endx0 && endx <= 2*R) {
@@ -1097,12 +1237,21 @@ var endx0 = false;
     cxt.globalAlpha = 0.5;    
     cxt.stroke();
 
-    //请求下一帧  
-    requestAnimationFrame(drawSpectrum);  
-    if(audio.currentTime == audio.duration || audio.paused) {
-        setTimeout(function(){return;}, 500);
-    }
-})();}
+    animationFrameId = requestAnimationFrame(drawSpectrum);  
+
+    // 检查是否需要暂停动画  
+    if (JSON.parse(localStorage.getItem("setting")).showaudio == 'yes') {  
+        window.cancelAnimationFrame(animationFrameId);
+    } 
+
+    setTimeout(function(){ 
+        if(audio.currentTime == audio.duration || audio.paused) {
+            setTimeout(function(){
+                audio.duration
+            }, 500);
+        }   
+    }, 1000);
+}
 }
 
 function volume() {
@@ -1129,6 +1278,7 @@ volume();
                 $('.img02').css('animation-play-state', 'running');  
                 $('.underline').css('animation-play-state', 'running');
             } else {  
+                audio.animate({volume: 1},300);
                 audio.pause();  
                 $('#imghoverBtn').html('<svg width="25" fill="rgba(255,255,255,0.8)" viewBox="0 0 16 16"><path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/></svg>');  
                 $('.img01').css('animation-play-state', 'paused');  
@@ -1137,6 +1287,20 @@ volume();
             }  
         }  
     });  
+
+			                        $(".loop-btn").click(function() { // 单曲循环按钮点击事件
+			                            if (audio.loop) {
+			                                audio.loop = false; // 取消单曲循环
+			                                $(this).html('<svg width="16" fill="#3b82f6" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/></svg>');
+			                                $(this).attr("title", "取消单曲循环");
+                                                        topTip('<svg width="16" fill="#3b82f6" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/></svg>取消单曲循环');
+			                            } else {
+			                                audio.loop = true; // 开启单曲循环
+			                                $(this).html('<svg width="20" fill="#3b82f6" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5z"/></svg>');
+			                                $(this).attr("title", "单曲循环");
+                                                        topTip('<svg width="20" fill="#3b82f6" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5z"/></svg>开启单曲循环');
+			                            }
+			                        });
 
 function music(songUrl) { // 播放音乐函数
 			                        audio.src = songUrl;
@@ -1147,7 +1311,6 @@ function music(songUrl) { // 播放音乐函数
 			                        var volumeBar = $(".volume-bar");
 			                        var currentTime = $(".current-time");
 			                        var totalTime = $(".total-time");
-			                        var loopBtn = $(".loop-btn"); // 单曲循环按钮
 			                        // 自动播放音频
 			                        if(audio.load){audio.play();}
 			                        dp.pause();
@@ -1176,18 +1339,6 @@ function music(songUrl) { // 播放音乐函数
 			                                audio.currentTime = 0;
 			                                $('#imghoverBtn').html('<svg width="25" fill="rgba(255,255,255,0.8)" viewBox="0 0 16 16"><path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/></svg>');
 			                            });
-			
-			                        loopBtn.click(function() { // 单曲循环按钮点击事件
-			                            if (audio.loop) {
-			                                audio.loop = false; // 取消单曲循环
-			                                loopBtn.html('<svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/></svg>');
-			                                loopBtn.attr("title", "取消单曲循环");
-			                            } else {
-			                                audio.loop = true; // 开启单曲循环
-			                                loopBtn.html('<svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5z"/></svg>');
-			                                loopBtn.attr("title", "单曲循环");
-			                            }
-			                        });
 			
 			                        function formatTime(time) {
 			                            var minutes = Math.floor(time / 60);
@@ -1495,20 +1646,26 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 
 
                         function playerMusicThings() {  // playermusic函数开始
-			                $('#back').attr("style", "display:block");
+			                if ($('#result').html() !== '') {
+                                            $('#back').attr("style", "display:block");
+			                    $('#showValue').css({'top':'180px','transform': 'translateX(110%)'});
+			                    $('#listPlayBtn').css({'top':'180px','transform': 'translateX(220%)'});
+                                        } else {
+                               		    $('#showValue').css({'top':'180px'});
+			                    $('#listPlayBtn').css({'top':'180px'});
+                                        }
 			                $('#lyric').attr("style", "display:block");
 			                $('#comments').show();
-			                $('#result').css('display', 'none');
+			                $('#result').hide();
 
 			                $("#back").attr("value", "返回搜索");
 			                $("#back").html("返回搜索");
-			                $('#showValue').css({'top':'180px','transform': 'translateX(110%)'});
-			                $('#listPlayBtn').css({'top':'180px','transform': 'translateX(220%)'});
+			                $('#showValue').css({'top':'180px'});
+			                $('#listPlayBtn').css({'top':'180px'});
 			
 			                var id = $(this).parent().parent().attr('title');
 			                var name = $(this).parent().parent().attr('name');
-
-                                        audioDisplay(); // 音频可视化
+                                                                                
 
     $('#result tr, #valueList tr').removeClass("hover");
     $('.tallshort').remove();
@@ -1533,7 +1690,12 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
                                             }
 
 			                    music(songUrl);
-			
+                                            if (audiodisplay == 0) {
+                                                context = new AudioContext;
+			                        source = context.createMediaElementSource(audio);
+                                                audiodisplay = audiodisplay + 1;
+                                            }
+                                            audioDisplay(); // 音频可视化
 			                });
 		
 			
@@ -1836,8 +1998,10 @@ localStorage.setItem("isGuided", JSON.stringify(isGuided));
 			});
 
 $("#songsnamea").click(function(){
-    var clipboard = nw.Clipboard.get();
-    clipboard.set($("#songsnamea").attr('href'), 'text');	
+    if (typeof nw !== 'undefined') {
+        var clipboard = nw.Clipboard.get();
+        clipboard.set($("#songsnamea").attr('href'), 'text');	
+    }
 });
 			
 			// 给输入框绑定回车键事件，触发搜索函数
@@ -1878,10 +2042,10 @@ $(document).on('dblclick', '#result tr, #valueList tr', function () {
                                   $('#valueList').prepend(iobutton);
                               }
                               if ($('#valueList').css('display') == 'block') {
-			          $('#valueList').css('display', 'none');
+			          $('#valueList').css({'display': 'none', 'backdrop-filter': ''});
                                   $('#result').css('color', '');
                               } else if ($('#valueList').css('display') == 'none') {
-			          $('#valueList').css('display', 'block');
+			          $('#valueList').css({'display': 'block', 'backdrop-filter': 'blur(5px);'});
                                   $('#result').css('color', '#888888');
                               }
 			});
@@ -2117,8 +2281,10 @@ input.on("input propertychange", function () {
 });
 
 			    $(document).ready(function() {
+if (!localStorage.getItem("setting") || !JSON.parse(localStorage.getItem("setting")).hasOwnProperty('loading') || JSON.parse(localStorage.getItem("setting")).loading == "no") {
 $('#fullscreen').click(function(){$('#fullscreen').remove();$('#hidescreen').remove();});
 $('#hidescreen').click(function(){$('#fullscreen').remove();$('#hidescreen').remove();});
+$("#fullscreen, #hidescreen").css('display', 'flex');
 			      setTimeout(function() {
 			        $("#fullscreen img").fadeOut("slow", function() {
 			            $(this).css("transform","scale(1)");
@@ -2168,10 +2334,74 @@ localStorage.setItem("isGuided", JSON.stringify(isGuided));
 			            });
 			          });
 			        }, 6500);
-			    });
+			    }else {$("#fullscreen, #hidescreen").remove();}});
 			
+$('#settingBtn').click(function(){
+  if ($('#setting').attr('title') == 'setting') {
+    $('#setting').css({'height':'95%', 'width':'300px'});
+    $('#setting').attr('title', ''); 
+    $(this).css('opacity', '0');
+    $('.topbar').show();
+    $('.setItem').css('display', 'flex');
+    setTimeout(function(){$('#settingBtn').css('opacity', '1');$('#settingBtn').html('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg>');}, 300);
+  } else {
+    $('#setting').css({'height':'30px', 'width':'40px'});
+    $('#setting').attr('title', 'setting');
+    $(this).css('opacity', '0');
+    $('.topbar').hide();
+    $('.setItem').hide();
+    setTimeout(function(){$('#settingBtn').css('opacity', '1');$('#settingBtn').html('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/></svg>');}, 300);
+  }
+})
+
+$(document).ready(function() {
+if (!localStorage.getItem("setting") || $.parseJSON(localStorage.getItem("setting")).loading == "no") {
+    $('#setswitch_loading').click();
+}
+if (!localStorage.getItem("setting") || $.parseJSON(localStorage.getItem("setting")).showaudio == "no") {
+    $('#setswitch_showaudio').click();
+}
+
+$('#setswitch_loading').click(function() {
+    if (!localStorage.getItem("setting")) {
+        localStorage.setItem("setting", '{}');
+    }
+    var json = JSON.parse(localStorage.getItem("setting"));
+    if (json.loading == "yes"){
+        json.loading = "no";
+    } else if (!json.hasOwnProperty('loading') || json.loading == "no") {
+        json.loading = "yes";
+        $("#fullscreen, #hidescreen").remove();
+    }
+    localStorage.setItem("setting", JSON.stringify(json));
+});
+
+$('#setswitch_showaudio').click(function() {
+    if (!localStorage.getItem("setting")) {
+        localStorage.setItem("setting", '{}');
+    }
+    var json = JSON.parse(localStorage.getItem("setting"));
+    if (json.showaudio == "yes"){
+        json.showaudio = "no";
+        if ($('#audio-player').height() > 50) {
+            $('#wrap').fadeIn();
+            audioDisplay();
+        }
+    } else if (!json.hasOwnProperty('showaudio') || json.showaudio == "no") {
+        json.showaudio = "yes";
+        $('#wrap').hide();
+    }
+    localStorage.setItem("setting", JSON.stringify(json));
+});
+});
+
 if (typeof nw !== 'undefined' && nw.Window.get()) {
 $('#window-controls').show();
+$('#drag-region').show();
+$('#setting').css({'left': '0', 'border-radius': '0 15px 15px 0'});
+$('#settingBtn').css({'left': '0', 'border-radius': '0 15px 15px 0'});
+$('#drag-region').css('left', '30px');
+
 			var nwWindow = nw.Window.get();
 			var dragRegion = document.getElementById('drag-region');
 			var isMaximized = false;
