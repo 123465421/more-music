@@ -888,12 +888,9 @@ radial-gradient(at 55% 24%, hsla(138,60%,62%,1) 0px, transparent 50%);
   width: 96%;
   background-color: rgba(255,255,255,0.9);
   padding: 6px;
-  display:flex;
-}
-
-.setItem {
   margin-top: 8px;
-  margin-left: 2%;
+  margin-left: 5px;
+  width: calc(100% - 20px);
   display: none;
 }
 
@@ -1112,6 +1109,7 @@ radial-gradient(at 55% 24%, hsla(138,60%,62%,1) 0px, transparent 50%);
 		</button>
 		<script>
 var audio = $('#audio-player')[0];
+var currentIndex = 0;
 
   if (localStorage.getItem('darkmode') == 'true') {
     $('img, #hidescreen, #fullscreen, .background, .imgbg, .buttonTab, .switch, html, .commentList img, .imghoverBtnImg').addClass('dark-mode');
@@ -1256,7 +1254,7 @@ function drawSpectrum() {
 
 function volume() {
     var volume = localStorage.getItem("dplayer-volume") * 100;
-    if(!volume) {
+    if(!localStorage.getItem("dplayer-volume")) {
         volume = 50;
         localStorage.setItem("dplayer-volume", Number(volume / 100));
     } 
@@ -1593,10 +1591,14 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 
 			  });
 			
+			  $(document).on('click', '.playerMusicBtn#playerMusicBtn', function() {
+                              currentIndex = $(this).index('.playerMusicBtn#playerMusicBtn') + 1;
+                          });
+
 			  // 点击删除按钮时触发事件
 			  $(document).on('click', '.deleteBtn', function() {
 			    var value = $(this).data('value'); // 获取要删除的值
-			
+
 			    // 获取当前储存的值列表
 			    var storedValues = JSON.parse(localStorage.getItem('storedValues'));
 			
@@ -1613,9 +1615,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			  });
 			
 			  $(document).on('click', '#listPlayBtn', function() {
-			    var buttonList = $('.playerMusicBtn'); // 获取所有带序号的按钮
-			    var currentIndex = 0; // 当前播放的按钮索引
-			
+			    var buttonList = $('.playerMusicBtn'); // 获取所有按钮
 			    function playNext() {
 			      if (currentIndex >= buttonList.length) {
 			        currentIndex = 0; // 如果已经播放到最后一个按钮，则从第一个按钮开始
@@ -1623,9 +1623,8 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			
 			      var buttonToClick = buttonList.eq(currentIndex); // 获取要点击的按钮
 			
-			      if (buttonToClick.length) {
+			      if (buttonToClick.length && audio.duration == audio.duration || audio.currentTime == 0) {
 			        buttonToClick.click(); // 模拟点击按钮
-			        currentIndex++;
 			      }
 			    }
 			
