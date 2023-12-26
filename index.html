@@ -302,6 +302,11 @@ svg,button:not(#settingBtn, #closeTab),input,img,.sound{
     border-radius: 0;
 }
 
+.dplayer svg {
+    width: 80%;
+    height: 80%;
+}
+
 /* latin-ext */
 @font-face {
   font-family: 'Lato';
@@ -354,7 +359,7 @@ body {
 ::-webkit-scrollbar {
   display: none;
 }
-button:not(#settingBtn, #closeTab) {
+button {
   font-family: monospace;
   background-color: rgba(255,255,255,0.6);
   color: #3b82f6;
@@ -866,6 +871,8 @@ radial-gradient(at 55% 24%, hsla(138,60%,62%,1) 0px, transparent 50%);
   height: 30px;
   width: 40px;
   transition: 0.3s;
+  margin: 0;
+  min-width: 0;
 }
 
 #setting {
@@ -986,7 +993,6 @@ radial-gradient(at 55% 24%, hsla(138,60%,62%,1) 0px, transparent 50%);
 
          .buttonTab {
              max-width: 95%;
-             height: 90%;
          }
       }
 </style>
@@ -1131,6 +1137,7 @@ var audiodisplay = 0;
 var animationFrameId;
 var context;
 var source;
+var analyser;
 function audioDisplay() { // 音频可视化
     var wrap = $("#wrap")[0];
     var cxt = wrap.getContext("2d");
@@ -1142,18 +1149,14 @@ if($("#wrap").attr('name') =='zoom1.5'){
 }
 
     //获取API
-    var analyser = context.createAnalyser();
-    //连接：source → analyser → destination
-    source.connect(analyser);
-    analyser.connect(context.destination);
     var output = new Uint8Array(180);   
     var length = analyser.frequencyBinCount * 44100 / context.sampleRate | 0;
     //创建数据 
     var output2 = new Uint8Array(length);
 
-var du = 2; //角度  
+var du = 2.4; //角度  
 var potInt = { x: 300, y: 300 }; //起始坐标  
-var R = 200; //半径  
+var R = 180; //半径  
 var W = 2; //宽  
 var endx = 2*R;
 var endx0 = false;
@@ -1186,7 +1189,7 @@ function drawSpectrum() {
     cxt.strokeStyle = gradient;   
     cxt.lineCap='round'; // 圆角
     //画线条  
-    for (var i = 0; i < 180; i++) {  
+    for (var i = 0; i < 150; i++) {  
         var value = output[i] / 10; //<===获取数据
         cxt.beginPath();  
         cxt.lineWidth = W;   
@@ -1202,10 +1205,10 @@ function drawSpectrum() {
 
     //将缓冲区的数据绘制到Canvas上 
     analyser.getByteTimeDomainData(output2);
-    var height = 100, width = 400;
+    var height = 100, width = 360;
     cxt.beginPath();
     for (var i = 0; i < width; i++) {
-        cxt.lineTo(i + 100, 300 - (height / 2 * (output2[output2.length * i / width | 0] / 256 - 0.5)));
+        cxt.lineTo(i + 120, 300 - (height / 2 * (output2[output2.length * i / width | 0] / 256 - 0.5)));
     }
     cxt.stroke();
     cxt.closePath();
@@ -1670,8 +1673,6 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
     $('.tallshort').remove();
     $(this).parent().parent().addClass("hover");
     $(this).parent().parent().prepend('<div class="tallshort"><div class="tallshort1"></div><div class="tallshort2"></div><div class="tallshort3"></div></div>');
-
-			                localStorage.setItem("myName", name);
 			
 			                $("#songsnamesp").text(name);
 			                document.title = name + '🎵';
@@ -1692,6 +1693,10 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
                                             if (audiodisplay == 0) {
                                                 context = new AudioContext;
 			                        source = context.createMediaElementSource(audio);
+   		                                analyser = context.createAnalyser();
+   		                                //连接：source → analyser → destination
+   		                                source.connect(analyser);
+   		                                analyser.connect(context.destination);
                                                 audiodisplay = audiodisplay + 1;
                                             }
                                             audioDisplay(); // 音频可视化
@@ -2051,7 +2056,7 @@ $(document).on('dblclick', '#result tr, #valueList tr', function () {
 			
 			$('#closeTab').click(
 			  function() {
-			    $('.buttonTab').hide();
+			    $('.buttonTab').fadeOut();
 			    $('#openTab').show();
 			    dp.pause();
 			});
