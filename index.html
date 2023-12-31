@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+                <title>more music</title>
 		<link href="other/img/logo3.png" rel="icon" type="image/x-ico">
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 		<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.js"></script>
@@ -132,7 +133,7 @@ svg,button:not(#settingBtn, #closeTab),input,img,.sound{
 
 #result tr:hover, #lyric span.active, #valueList tr:hover, .hover {
     transition-behavior: normal;
-    transition-duration: 0.3s;
+    transition-duration: 0.2s;
     transition-timing-function: ease;
     transition-delay: 0s;
     transition-property: all;
@@ -176,6 +177,11 @@ svg,button:not(#settingBtn, #closeTab),input,img,.sound{
             margin: 8px;
             padding: 8px;
             border-radius: 10px;
+        }
+
+        #valueList tr:hover {
+            box-shadow: none;
+            transition-duration: 0.5s;
         }
 
         #valueList tr span {
@@ -451,10 +457,18 @@ div,table {
     transition: 0.3s;
 }
     
- a, a:hover, a:focus, a:active {
+ a, a:focus, a:active {
       text-decoration: none;
       color: black;
  }
+
+#songsnamesp:hover {
+    text-decoration-color: #87cefa;
+}
+
+#songsnamesp:hover {
+    text-decoration: underline;
+}
 
  #back{
   display:none;
@@ -524,15 +538,15 @@ div,table {
 }
 
 #closeTab {
-  position:absolute;
-  top:-50px;
-  right:10px;
-  height:40px;
-  min-width: 40px;
-  width: 40px;
-  background-color:white;
-  border-radius: 40px;
-  border: none;
+    position: absolute;
+    top: -40px;
+    right: 0px;
+    height: 80px;
+    min-width: 40px;
+    width: 40px;
+    background-color: white;
+    border-radius: 40px;
+    border: none;
 }
 
 #searchTab {
@@ -576,8 +590,9 @@ div#driver-popover-item .driver-popover-footer button {
 
 #tip {
     position: fixed;
-    top: 65px;
+    top: 60px;
     left: 5%;
+    min-height: 10px;
     border-radius: 20px;
     background-color: rgba(255,255,255,0.5);
     backdrop-filter: blur(5px);
@@ -819,7 +834,7 @@ radial-gradient(at 55% 24%, hsla(138,60%,62%,1) 0px, transparent 50%);
 }
 
 .tallshort {
-    width: 35px;
+    width: 40px;
     position: relative;
     top: 50%;
     transform: translateY(50%);
@@ -1101,7 +1116,7 @@ radial-gradient(at 55% 24%, hsla(138,60%,62%,1) 0px, transparent 50%);
 		<table id="valueList"></table><input type="file" id="fileButton" style="display:none" accept=".json">
 		<div class="buttonTab">
 			<button id="closeTab">
-				<svg width="25" fill="#3b82f6" viewBox="0 0 16 16">
+				<svg width="25" fill="#3b82f6" viewBox="0 0 16 16" style="position: absolute;top: 5px;right: 5px;">
 					<path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z" />
 				</svg>
 			</button>
@@ -1116,6 +1131,24 @@ radial-gradient(at 55% 24%, hsla(138,60%,62%,1) 0px, transparent 50%);
 		<script>
 var audio = $('#audio-player')[0];
 var currentIndex = 0;
+
+(function() { //localStorage setting初始化
+    if (!localStorage.getItem("setting")) {
+        localStorage.setItem("setting", "{}");
+    }
+    var setting = $.parseJSON(localStorage.getItem("setting"));  
+    if (!JSON.parse(localStorage.getItem("setting")).hasOwnProperty('isGuided')) {
+        setting.isGuided = {};
+    }
+    if (!JSON.parse(localStorage.getItem("setting")).hasOwnProperty('play')) {
+        setting.play = {};
+    }
+    localStorage.setItem("setting", JSON.stringify(setting));
+})()
+if ($.parseJSON(localStorage.getItem("setting")).play.time) { //继承“创业未半”（上次播放进度）
+    audio.currentTime = $.parseJSON(localStorage.getItem("setting")).play.time;
+    playerMusicThings($.parseJSON(localStorage.getItem("setting")).play.id, $.parseJSON(localStorage.getItem("setting")).play.name, true);
+}
 
   if (localStorage.getItem('darkmode') == 'true') {
     $('img, #hidescreen, #fullscreen, .background, .imgbg, .buttonTab, .switch, html, .commentList img, .imghoverBtnImg').addClass('dark-mode');
@@ -1165,6 +1198,9 @@ var endx0 = false;
     setTimeout(function(){
         if (localStorage.getItem("setting") == null || JSON.parse(localStorage.getItem("setting")).showaudio == 'no') {  
             requestAnimationFrame(drawSpectrum);
+        }
+        if ($('#audio-player').height() > 50) {
+            $('#wrap').fadeIn();
         }
     }, 200);
 
@@ -1242,7 +1278,7 @@ function drawSpectrum() {
 
     // 检查是否需要暂停动画  
     if (localStorage.getItem("setting") == null || JSON.parse(localStorage.getItem("setting")).showaudio == 'no') {} else {
-        cancelAnimationFrame(animationFrameId);console.log(1919);
+        cancelAnimationFrame(animationFrameId);
     } 
 
     setTimeout(function(){ 
@@ -1267,10 +1303,20 @@ function volume() {
 }
 volume();
 
+    var audioVolume = audio.volume;
     $('.imghoverBtnImg').click(function() {  
+        if (audiodisplay == 0) {
+            context = new AudioContext;
+	    source = context.createMediaElementSource(audio);
+   	    analyser = context.createAnalyser();
+   	    //连接：source → analyser → destination
+   	    source.connect(analyser);
+   	    analyser.connect(context.destination);
+            audiodisplay = audiodisplay + 1;
+            audioDisplay(); // 音频可视化
+        }
         if(audio.onerror){} else {  
             if (audio.paused) {  
-                audio.play();  
                 $('#imghoverBtn').html('<svg width="25" fill="rgba(255,255,255,0.8)" viewBox="0 0 16 16"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"/></svg>');  
                 dp.pause();  
                 $('.img01').css('animation', 'rotate 150s linear infinite');  
@@ -1278,13 +1324,37 @@ volume();
                 $('.img01').css('animation-play-state', 'running');  
                 $('.img02').css('animation-play-state', 'running');  
                 $('.underline').css('animation-play-state', 'running');
+                audio.play();
+                function avolume(i) {
+                    setTimeout(function(){
+                        audio.volume = Math.round((audio.volume + 0.01) * 100) / 100;
+                    }, 6 * i);
+                }
+                var forVolume = (Math.round((audioVolume / 0.01) * 100) / 100);
+                for (var i = 0; i < forVolume; i++){ //volume循环变小
+
+                    if (audio.volume < audioVolume) {
+                        avolume(i);
+                    }
+                }
             } else {  
-                audio.animate({volume: 1},300);
-                audio.pause();  
+                audioVolume = audio.volume;
                 $('#imghoverBtn').html('<svg width="25" fill="rgba(255,255,255,0.8)" viewBox="0 0 16 16"><path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/></svg>');  
                 $('.img01').css('animation-play-state', 'paused');  
                 $('.img02').css('animation-play-state', 'paused');  
                 $('.underline').css('animation-play-state', 'paused');
+                function rvolume(i) {
+                    setTimeout(function(){
+                        audio.volume = Math.round((audio.volume - 0.01) * 100) / 100;
+                    }, 6 * i);
+                }
+                var forVolume = (Math.round((audio.volume / 0.01) * 100) / 100);
+                for (var i = 0; i < forVolume; i++){ //volume循环变小
+                    if (audio.volume > 0) {
+                        rvolume(i);
+                    }
+                    setTimeout(function() {audio.pause();}, (forVolume - 1) * 6);
+                }
             }  
         }  
     });  
@@ -1303,7 +1373,7 @@ volume();
 			                            }
 			                        });
 
-function music(songUrl) { // 播放音乐函数
+function music(songUrl, pause = false) { // 播放音乐函数
 			                        audio.src = songUrl;
                                                 audio.load();
 			                        $("#songsnamea").attr("href", songUrl);
@@ -1313,9 +1383,21 @@ function music(songUrl) { // 播放音乐函数
 			                        var currentTime = $(".current-time");
 			                        var totalTime = $(".total-time");
 			                        // 自动播放音频
-			                        if(audio.load){audio.play();}
+			                        if(audio.load && !pause){
+                                                    audio.play();
+			                            $('#imghoverBtn').html('<svg width="25" fill="rgba(255,255,255,0.8)" viewBox="0 0 16 16"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"/></svg>');
+                                                    if (audiodisplay == 0) {
+                                                        context = new AudioContext;
+			                                source = context.createMediaElementSource(audio);
+   		                                        analyser = context.createAnalyser();
+   		                                        //连接：source → analyser → destination
+   		                                        source.connect(analyser);
+   		                                        analyser.connect(context.destination);
+                                                        audiodisplay = audiodisplay + 1;
+                                                        audioDisplay(); // 音频可视化
+                                                    }
+                                                }
 			                        dp.pause();
-			                        $('#imghoverBtn').html('<svg width="25" fill="rgba(255,255,255,0.8)" viewBox="0 0 16 16"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"/></svg>');
 			                        progressBar.on("input",
 			                            function() {
 			                                var value = $(this).val();
@@ -1333,6 +1415,9 @@ function music(songUrl) { // 播放音乐函数
 			                                totalTime.text(durationVal);
                                                         var percent = audio.currentTime/audio.duration;
                                                         $('.progress-bar').css('background-image', 'linear-gradient(to right, #3b82f6 ' + percent*100 + '%, #FFF 0)');
+                                                        var setting = $.parseJSON(localStorage.getItem("setting"));
+                                                        setting.play.time = audio.currentTime;
+                                                        localStorage.setItem("setting", JSON.stringify(setting));
 			                            });
 			
 			                        audio.addEventListener("ended",
@@ -1383,8 +1468,6 @@ function music(songUrl) { // 播放音乐函数
                                         }
                                         moveDown();
 
-			// 检查是否已经完成了新手指导
-			var isGuided = JSON.parse(localStorage.getItem("isGuided")) || {};  
 			// 创建新的Driver实例(搜索指引)
 			var driver2 = new Driver();
 			
@@ -1539,22 +1622,18 @@ function music(songUrl) { // 播放音乐函数
 			         }
 			       }
 
-var isGuided = JSON.parse(localStorage.getItem("isGuided")) || {};  
-if (!isGuided?.isGuided2) {
-  // 启动指导  
-  driver2.start();
-  // 设置已完成指导标记  
-  var guided1 = false;
-  if(isGuided?.isGuided1) {
-    guided1 = true;
-  }
-  isGuided['isGuided1'];
-  isGuided['isGuided2'];
-  isGuided.isGuided1 = guided1;
-  isGuided.isGuided2 = true;
-
+if (!localStorage.getItem("setting")) {
+    localStorage.setItem("setting", "{}");
 }
-localStorage.setItem("isGuided", JSON.stringify(isGuided));
+var setting = $.parseJSON(localStorage.getItem("setting"));  
+if (!JSON.parse(localStorage.getItem("setting")).hasOwnProperty('isGuided')) {
+    setting.isGuided = {};
+}
+if (!setting.isGuided.hasOwnProperty('isGuided2')) {
+  setting.isGuided.isGuided2 = true;
+  driver2.start();
+}
+localStorage.setItem("setting", JSON.stringify(setting));
 
 			     }
                              
@@ -1647,7 +1726,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			
 
 
-                        function playerMusicThings() {  // playermusic函数开始
+                        function playerMusicThings(id, name, pause = false) {  // playermusic函数开始
 			                if ($('#result').html() !== '') {
                                             $('#back').attr("style", "display:block");
 			                    $('#showValue').css({'top':'180px','transform': 'translateX(110%)'});
@@ -1664,10 +1743,6 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                $("#back").html("返回搜索");
 			                $('#showValue').css({'top':'180px'});
 			                $('#listPlayBtn').css({'top':'180px'});
-			
-			                var id = $(this).parent().parent().attr('title');
-			                var name = $(this).parent().parent().attr('name');
-                                                                                
 
     $('#result tr, #valueList tr').removeClass("hover");
     $('.tallshort').remove();
@@ -1689,17 +1764,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
                                                 topTip('<svg fill="#3b82f6" viewBox="0 0 16 16"><path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z"/><path fill-rule="evenodd" d="M9 3v10H8V3h1z"/><path d="M8 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 13 2.22V4L8 5V2.82z"/></svg>开始播放' + name + '~');
                                             }
 
-			                    music(songUrl);
-                                            if (audiodisplay == 0) {
-                                                context = new AudioContext;
-			                        source = context.createMediaElementSource(audio);
-   		                                analyser = context.createAnalyser();
-   		                                //连接：source → analyser → destination
-   		                                source.connect(analyser);
-   		                                analyser.connect(context.destination);
-                                                audiodisplay = audiodisplay + 1;
-                                            }
-                                            audioDisplay(); // 音频可视化
+			                    music(songUrl, pause);
 			                });
 		
 			
@@ -1905,10 +1970,13 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
                                             moveDown();  // 收藏列表下移
                                             setTimeout(moveDown, 500);  // 收藏列表下移
 			                });
+			
+			$(document).on("click", ".resultTr", function (){
+                                   $("this tdBtn #playerMusicBtn").trigger("click");
+                             });
 
 			// 创建新的Driver实例
 			var driver3 = new Driver();
-			
 			// 定义步骤
 			driver3.defineSteps([
 			  {
@@ -1937,37 +2005,26 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			  }
 			]);
 
-var isGuided = JSON.parse(localStorage.getItem("isGuided")) || {};  
-if (!isGuided?.isGuided3 || isGuided.isGuided3 !== true) {
-  // 设置已完成指导标记  
-  var guided1 = false;
-  var guided2 = false;
-  if(isGuided?.isGuided1) {
-    guided1 = true;
-  }
-  if(isGuided?.isGuided2) {
-    guided2 = true;
-  }
-  isGuided['isGuided1'];
-  isGuided['isGuided2'];
-  isGuided['isGuided3'];
-  isGuided.isGuided1 = guided1;
-  isGuided.isGuided2 = guided2;
-  isGuided.isGuided3 = true;
-  // 启动指导  
-  driver3.start();
+var setting = $.parseJSON(localStorage.getItem("setting"));  
+var timer;
+if (!setting.isGuided.hasOwnProperty('isGuided3')) {
+  setting.isGuided.isGuided3 = true;
+  // 启动指导
+  timer = setInterval(function() {console.log(1445);
+      if ($('#comments').height() > 2 && $('#lyric').height() > 2) {
+          driver3.start();
+          clearTimeout(timer);
+      }
+  }, 500);
 }
-localStorage.setItem("isGuided", JSON.stringify(isGuided));
-			
-			$(document).on("click", ".resultTr", function (){
-                                   $("this tdBtn #playerMusicBtn").trigger("click");
-                             });
+
+setting.play.id = id;
+setting.play.name = name;
+localStorage.setItem("setting", JSON.stringify(setting));
 		} // playermusic函数结束
 
-
-
 			// 事件委托绑定按钮点击事件处理程序
-			$(document).on('click', '#playerMusicBtn', playerMusicThings);
+			$(document).on('click', '#playerMusicBtn', function(){playerMusicThings($(this).parent().parent().attr('title'), $(this).parent().parent().attr('name'));});
 			
 			var dp = new DPlayer({
 			  container: document.getElementById('videotab'),
@@ -2056,7 +2113,7 @@ $(document).on('dblclick', '#result tr, #valueList tr', function () {
 			
 			$('#closeTab').click(
 			  function() {
-			    $('.buttonTab').fadeOut();
+			    $('.buttonTab').hide();
 			    $('#openTab').show();
 			    dp.pause();
 			});
@@ -2320,19 +2377,18 @@ $("#fullscreen, #hidescreen").css('display', 'flex');
 			              setTimeout(function() {
 			                $("#hidescreen").remove();  // 删除元素
 
-var isGuided = JSON.parse(localStorage.getItem("isGuided")) || {};  
-if (!isGuided?.isGuided1&&isGuided.isGuided1 !== false) {  
-  // 启动指导    
-  driver.start();    
-  // 设置已完成指导标记    
-  isGuided['isGuided1'];
-  isGuided.isGuided1 = true; 
-} else if (isGuided.isGuided1 === false) {  
-  // 启动指导    
-  driver.start();    
-  isGuided.isGuided1 = true;  
+if (!localStorage.getItem("setting")) {
+    localStorage.setItem("setting", "{}");
 }
-localStorage.setItem("isGuided", JSON.stringify(isGuided));
+var setting = $.parseJSON(localStorage.getItem("setting"));  
+if (!JSON.parse(localStorage.getItem("setting")).hasOwnProperty('isGuided')) {
+    setting.isGuided = {};
+}
+if (!setting.isGuided.hasOwnProperty('isGuided1')) {
+  setting.isGuided.isGuided1 = true;
+  driver.start();
+}
+localStorage.setItem("setting", JSON.stringify(setting));
 
 			              }, 800);  // 延迟1秒执行
 			            });
@@ -2359,12 +2415,17 @@ $('#settingBtn').click(function(){
 })
 
 $(document).ready(function() {
-if (!localStorage.getItem("setting") || $.parseJSON(localStorage.getItem("setting")).loading == "no") {
-    $('#setswitch_loading').click();
-}
-if (!localStorage.getItem("setting") || $.parseJSON(localStorage.getItem("setting")).showaudio == "no") {
-    $('#setswitch_showaudio').click();
-}
+    var json = JSON.parse(localStorage.getItem("setting"));
+    if ($.parseJSON(localStorage.getItem("setting")).loading == "no" || !$.parseJSON(localStorage.getItem("setting")).loading) {
+        $('#setswitch_loading').click();
+        json.loading = "no";
+    }
+    if ($.parseJSON(localStorage.getItem("setting")).showaudio == "no" || !$.parseJSON(localStorage.getItem("setting")).showaudio) {
+        $('#setswitch_showaudio').click();
+        json.showaudio = "no";
+    }
+    localStorage.setItem("setting", JSON.stringify(json));
+});
 
 $('#setswitch_loading').click(function() {
     if (!localStorage.getItem("setting")) {
@@ -2396,7 +2457,6 @@ $('#setswitch_showaudio').click(function() {
         $('#wrap').hide();
     }
     localStorage.setItem("setting", JSON.stringify(json));
-});
 });
 
 if (typeof nw !== 'undefined' && nw.Window.get()) {
@@ -2434,7 +2494,11 @@ $('#drag-region').css('left', '30px');
 			});
 			
 			document.getElementById('close-btn').addEventListener('click', function() {
-			  nwWindow.close();
+                                                    topTip('<svg width="25" fill="#3b82f6" class="bi bi-question-square" viewBox="0 0 16 16"><path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/><path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/></svg>确认要关闭吗？请双击关闭哦~',2000);
+			});
+
+			document.getElementById('close-btn').addEventListener('dblclick', function() {
+                                                    nwWindow.close();
 			});
 			
 			const { Menu, MenuItem, getCurrentWindow } = require('nw.gui');
@@ -2523,6 +2587,37 @@ $('#drag-region').css('left', '30px');
 			    location.reload();
 			  }
 			});
+
+// 创建一个托盘图标
+var tray = new nw.Tray({title: document.title, tooltip: document.title, icon: 'logo3.png'});
+
+// 给它设置一个菜单
+var menu = new nw.Menu();
+			menu.append(new MenuItem({
+			  label: '打开窗口',
+			  click: () => {
+			    nw.Window.get().show();
+			  }
+			}));
+
+			menu.append(new MenuItem({
+			  label: '关闭',
+			  click: () => {
+                            nw.Window.get().show();
+			    nw.Window.get().close();
+			  }
+			}));
+
+			menu.append(new MenuItem({
+                          type: 'separator'
+			}));
+
+			menu.append(new nw.MenuItem({
+ 			  label: '关于',
+  			  submenu: aboutMenu
+			}));
+tray.menu = menu;
+
 }else {$('#window-controls').hide();}
 		</script>
 		<style id="stylediv"></style>
