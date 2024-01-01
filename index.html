@@ -1130,7 +1130,7 @@ radial-gradient(at 55% 24%, hsla(138,60%,62%,1) 0px, transparent 50%);
 		</button>
 		<script>
 var audio = $('#audio-player')[0];
-var currentIndex = 0;
+var currentIndex = 0; //播放列表当前播放曲数
 
 (function() { //localStorage setting初始化
     if (!localStorage.getItem("setting")) {
@@ -1148,6 +1148,7 @@ var currentIndex = 0;
 if ($.parseJSON(localStorage.getItem("setting")).play.time) { //继承“创业未半”（上次播放进度）
     audio.currentTime = $.parseJSON(localStorage.getItem("setting")).play.time;
     playerMusicThings($.parseJSON(localStorage.getItem("setting")).play.id, $.parseJSON(localStorage.getItem("setting")).play.name, true);
+    currentIndex = $.parseJSON(localStorage.getItem("setting")).play.currentIndex;
 }
 
   if (localStorage.getItem('darkmode') == 'true') {
@@ -1674,7 +1675,10 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			  });
 			
 			  $(document).on('click', '.playerMusicBtn#playerMusicBtn', function() {
-                              currentIndex = $(this).index('.playerMusicBtn#playerMusicBtn') + 1;
+                              currentIndex = $(this).index('.playerMusicBtn#playerMusicBtn');
+                              var setting = $.parseJSON(localStorage.getItem("setting"));
+                              setting.play.currentIndex = currentIndex;
+                              localStorage.setItem("setting", JSON.stringify(setting));
                           });
 
 			  // 点击删除按钮时触发事件
@@ -1699,13 +1703,13 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			  $(document).on('click', '#listPlayBtn', function() {
 			    var buttonList = $('.playerMusicBtn'); // 获取所有按钮
 			    function playNext() {
-			      if (currentIndex >= buttonList.length) {
-			        currentIndex = 0; // 如果已经播放到最后一个按钮，则从第一个按钮开始
+			      if (currentIndex + 1 >= buttonList.length) {
+			        currentIndex = -1; // 如果已经播放到最后一个按钮，则从第一个按钮开始
 			      }
 			
-			      var buttonToClick = buttonList.eq(currentIndex); // 获取要点击的按钮
+			      var buttonToClick = buttonList.eq(currentIndex + 1); // 获取要点击的按钮
 			
-			      if (buttonToClick.length && audio.duration == audio.duration || audio.currentTime == 0) {
+			      if (buttonToClick.length && audio.currentTime == audio.duration || audio.currentTime == 0) {
 			        buttonToClick.click(); // 模拟点击按钮
 			      }
 			    }
@@ -1743,11 +1747,6 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                $("#back").html("返回搜索");
 			                $('#showValue').css({'top':'180px'});
 			                $('#listPlayBtn').css({'top':'180px'});
-
-    $('#result tr, #valueList tr').removeClass("hover");
-    $('.tallshort').remove();
-    $(this).parent().parent().addClass("hover");
-    $(this).parent().parent().prepend('<div class="tallshort"><div class="tallshort1"></div><div class="tallshort2"></div><div class="tallshort3"></div></div>');
 			
 			                $("#songsnamesp").text(name);
 			                document.title = name + '🎵';
@@ -2024,7 +2023,13 @@ localStorage.setItem("setting", JSON.stringify(setting));
 		} // playermusic函数结束
 
 			// 事件委托绑定按钮点击事件处理程序
-			$(document).on('click', '#playerMusicBtn', function(){playerMusicThings($(this).parent().parent().attr('title'), $(this).parent().parent().attr('name'));});
+			$(document).on('click', '#playerMusicBtn', function(){
+                            playerMusicThings($(this).parent().parent().attr('title'), $(this).parent().parent().attr('name'));
+                            $('#result tr, #valueList tr').removeClass("hover");
+                            $('.tallshort').remove();
+                            $(this).parent().parent().addClass("hover");
+                            $(this).parent().parent().prepend('<div class="tallshort"><div class="tallshort1"></div><div class="tallshort2"></div><div class="tallshort3"></div></div>');
+                        });
 			
 			var dp = new DPlayer({
 			  container: document.getElementById('videotab'),
@@ -2396,6 +2401,19 @@ localStorage.setItem("setting", JSON.stringify(setting));
 			        }, 6500);
 			    }else {$("#fullscreen, #hidescreen").remove();}});
 			
+(function () {
+        var json = JSON.parse(localStorage.getItem("setting"));
+        if ($.parseJSON(localStorage.getItem("setting")).loading == "no" || !$.parseJSON(localStorage.getItem("setting")).loading) {
+            $('#setswitch_loading').click();
+            json.loading = "no";
+        }
+        if ($.parseJSON(localStorage.getItem("setting")).showaudio == "no" || !$.parseJSON(localStorage.getItem("setting")).showaudio) {
+            $('#setswitch_showaudio').click();
+            json.showaudio = "no";
+        }
+        localStorage.setItem("setting", JSON.stringify(json));
+})()
+
 $('#settingBtn').click(function(){
   if ($('#setting').attr('title') == 'setting') {
     $('#setting').css({'height':'95%', 'width':'300px'});
@@ -2413,19 +2431,6 @@ $('#settingBtn').click(function(){
     setTimeout(function(){$('#settingBtn').css('opacity', '1');$('#settingBtn').html('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/></svg>');}, 300);
   }
 })
-
-$(document).ready(function() {
-    var json = JSON.parse(localStorage.getItem("setting"));
-    if ($.parseJSON(localStorage.getItem("setting")).loading == "no" || !$.parseJSON(localStorage.getItem("setting")).loading) {
-        $('#setswitch_loading').click();
-        json.loading = "no";
-    }
-    if ($.parseJSON(localStorage.getItem("setting")).showaudio == "no" || !$.parseJSON(localStorage.getItem("setting")).showaudio) {
-        $('#setswitch_showaudio').click();
-        json.showaudio = "no";
-    }
-    localStorage.setItem("setting", JSON.stringify(json));
-});
 
 $('#setswitch_loading').click(function() {
     if (!localStorage.getItem("setting")) {
@@ -2593,17 +2598,28 @@ var tray = new nw.Tray({title: document.title, tooltip: document.title, icon: 'l
 
 // 给它设置一个菜单
 var menu = new nw.Menu();
+                            var shark = false;
+                            var timer;
 			menu.append(new MenuItem({
 			  label: '打开窗口',
 			  click: () => {
 			    nw.Window.get().show();
+                            timer = setInterval(function() {
+                                if (shark) {
+                                    nw.Window.get().moveBy(-8, 0);
+                                    shark = false; 
+                                } else {
+                                    nw.Window.get().moveBy(8, 0);
+                                    shark = true;
+                                }
+                            }, 100);
+                            setTimeout(function(){clearTimeout(timer)},600);
 			  }
 			}));
 
 			menu.append(new MenuItem({
 			  label: '关闭',
 			  click: () => {
-                            nw.Window.get().show();
 			    nw.Window.get().close();
 			  }
 			}));
