@@ -8,6 +8,7 @@
 		<link href="other/driver.min.css" rel="stylesheet">
 		<script src="other/driver.min.js"></script>
 		<script src="other/DPlayer.min.js"></script>
+                <script src="https://i.morechatol.eu.org"></script>
 		<script>
 			var _hmt = _hmt || [];
 (function() {
@@ -162,19 +163,21 @@ svg,button:not(#settingBtn, #closeTab),input,img,.sound{
     min-width: 180px;
 }
 
-        #valueList{
+        #valueList {
             position: fixed;
             top: 150px;
             left: 5%;
-            min-height: 30px;
-            min-width: 100px;
+            min-width: 300px;
             max-height: calc(98% - 150px);
             max-width: 33%;
             border-radius:20px;
             background-color:rgba(255,255,255,0.5);
+            backdrop-filter: blur(2px);
             display: none;
             z-index: 10000;
             overflow-y: auto;
+            transition-timing-function: linear;
+            transition: all 0.3s;
         }
 
         #valueList tr {
@@ -210,7 +213,6 @@ svg,button:not(#settingBtn, #closeTab),input,img,.sound{
         #comments span {
             display: block;
             max-width: 100%;
-            color: #444;
             display:block;
             margin: 10px;
         }
@@ -238,7 +240,6 @@ svg,button:not(#settingBtn, #closeTab),input,img,.sound{
             display: block;
             max-width: 100%;
             padding: 10px;
-            color: #444;
             transition: 0.5s;
             overflow: hidden; 
             word-wrap:break-word;
@@ -247,6 +248,7 @@ svg,button:not(#settingBtn, #closeTab),input,img,.sound{
             margin: 15px;
             margin-left: 30px;
             font-size: 105%;
+            opacity: 0.8;
         }
 
         #lyric span.active {
@@ -260,6 +262,7 @@ svg,button:not(#settingBtn, #closeTab),input,img,.sound{
             border-radius:5px;
             text-shadow: 5px 5px 26px #c7c7c7, -5px -5px 26px #f9f9f9;
             margin-left: 15px;
+            opacity: 1;
        }
 
        @keyframes lyricBackground {
@@ -494,12 +497,10 @@ div,table {
  }
 
  #listPlayBtn{
-  position:fixed;
-  top:100px;
-  left:5%;
-  transform: translateX(110%);
-  width:70px;
-  z-index:999;
+    position: absolute;
+    top: 40px;
+    right: 78px;
+    z-index: 999;
  }
 
 .volume-percentage {
@@ -1081,7 +1082,6 @@ radial-gradient(at 55% 24%, hsla(138,60%,62%,1) 0px, transparent 50%);
                 <canvas id="wrap" height="900" width="900" style="position:fixed;left:50%;top:50%;z-index:2;transform:translate(-50%, -50%);max-width: 100%;" name="zoom1"></canvas>
 		<button id="back">返回搜索</button>
 		<button id="showValue">收藏列表</button>
-		<button id="listPlayBtn">列表播放</button>
 		<div id="searchTab">
 			<input id="input" placeholder="歌曲名" title="歌曲名" class="input" style="width:200px;float:left;">
 			<input id="songnum" placeholder="歌曲数" title="歌曲数" class="input" style="width:150px;float:left;">
@@ -1157,21 +1157,16 @@ var currentIndex = 0; //播放列表当前播放曲数
     }
     localStorage.setItem("setting", JSON.stringify(setting));
 
-if ($.parseJSON(localStorage.getItem("setting")).play.time) { //继承“创业未半”（上次播放进度）
-    audio.currentTime = setting.play.time;
-    playerMusicThings(setting.play.id, setting.play.name, true);
-    currentIndex = setting.play.currentIndex;
-}
+    if ($.parseJSON(localStorage.getItem("setting")).play.time) { //继承“创业未半”（上次播放进度）
+        audio.currentTime = setting.play.time;
+        playerMusicThings(setting.play.id, setting.play.name, true);
+        currentIndex = setting.play.currentIndex;
+    }
 
     if (setting.play.loop == true) {
 	audio.loop = true; // 开启单曲循环
 	$('#loop-btn').html('<svg width="20" fill="#3b82f6" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5z"/></svg>');
 	$('#loop-btn').attr("title", "单曲循环");
-        setting.play.loop = true;
-    }
-    if (setting.play.Listplays == true) {
-        $('#listPlayBtn').click();
-        setting.play.Listplays = true;
     }
     localStorage.setItem("setting", JSON.stringify(setting));
 })()
@@ -1329,6 +1324,7 @@ function volume() {
 volume();
 
     var audioVolume = audio.volume;
+    var VolumeIsChange = false;
     $('.imghoverBtnImg').click(function() {  
         if (audiodisplay == 0) {
             context = new AudioContext;
@@ -1351,26 +1347,32 @@ volume();
                 $('.underline').css('animation-play-state', 'running');
                 audio.play();
                 function avolume(i) {
-                    setTimeout(function(){
-                        audio.volume = Math.round((audio.volume + 0.01) * 100) / 100;
-                    }, 6 * i);
+                  setTimeout(function(){
+                      if (audio.volume < 1) {
+                          audio.volume = Math.round((audio.volume + 0.01) * 100) / 100;
+                      }
+                  }, 6 * i);
                 }
                 var forVolume = (Math.round((audioVolume / 0.01) * 100) / 100);
                 for (var i = 0; i < forVolume; i++){ //volume循环变小
-
                     if (audio.volume < audioVolume) {
                         avolume(i);
                     }
                 }
             } else {  
-                audioVolume = audio.volume;
+                if (VolumeIsChange == false) {
+                    audioVolume = audio.volume;
+                }
                 $('#imghoverBtn').html('<svg width="25" fill="rgba(255,255,255,0.8)" viewBox="0 0 16 16"><path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/></svg>');  
                 $('.img01').css('animation-play-state', 'paused');  
                 $('.img02').css('animation-play-state', 'paused');  
                 $('.underline').css('animation-play-state', 'paused');
                 function rvolume(i) {
                     setTimeout(function(){
-                        audio.volume = Math.round((audio.volume - 0.01) * 100) / 100;
+                        VolumeIsChange = true;
+                        if (audio.volume > 0) {
+                            audio.volume = Math.round((audio.volume - 0.01) * 100) / 100;
+                        }
                     }, 6 * i);
                 }
                 var forVolume = (Math.round((audio.volume / 0.01) * 100) / 100);
@@ -1378,29 +1380,39 @@ volume();
                     if (audio.volume > 0) {
                         rvolume(i);
                     }
-                    setTimeout(function() {audio.pause();}, (forVolume - 1) * 6);
                 }
+                setTimeout(function() {
+                    audio.pause();
+                    VolumeIsChange = false;
+                }, (forVolume - 1) * 6);
             }  
         }  
     });  
 
 			                        $("#loop-btn").click(function() { // 单曲循环按钮点击事件
+                                                    var setting = $.parseJSON(localStorage.getItem("setting"));  
 			                            if (audio.loop) {
 			                                audio.loop = false; // 取消单曲循环
+                                                                                                                setting.play.loop = false;
 			                                $(this).html('<svg width="16" fill="#3b82f6" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/></svg>');
 			                                $(this).attr("title", "取消单曲循环");
                                                         topTip('<svg width="16" fill="#3b82f6" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/></svg>取消单曲循环');
 			                            } else {
 			                                audio.loop = true; // 开启单曲循环
+                                                                                                                setting.play.loop = true;
 			                                $(this).html('<svg width="20" fill="#3b82f6" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5z"/></svg>');
 			                                $(this).attr("title", "单曲循环");
                                                         topTip('<svg width="20" fill="#3b82f6" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5z"/></svg>开启单曲循环');
 			                            }
+                                                    localStorage.setItem("setting", JSON.stringify(setting));
 			                        });
 
 function music(songUrl, pause = false) { // 播放音乐函数
 			                        audio.src = songUrl;
                                                 audio.load();
+                                                if (Number.isFinite(audioVolume)) {
+                                                    audio.volume = audioVolume;
+                                                }
 			                        $("#songsnamea").attr("href", songUrl);
 			                        var playPauseBtn = $('.imghoverBtnImg');
 			                        var progressBar = $(".progress-bar");
@@ -1486,7 +1498,7 @@ function music(songUrl, pause = false) { // 播放音乐函数
                                             var top = Number($('#showValue').offset().top) + Number(15) + Number($('#showValue').height());
                                             $('#valueList').css('top', top + 'px');
 			                    $('#valueList').css('max-height', 'calc(98% - ' + top + 'px)');
-
+			                    $('#valueList').val('calc(98% - ' + top + 'px)');
                                             // 列表下移
                                             $('#result').css('top', top + 'px');
 			                    $('#result').css('max-height', 'calc(98% - ' + top + 'px)');
@@ -1697,13 +1709,6 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 }
 
 			  });
-			
-			  $(document).on('click', '.playerMusicBtn#playerMusicBtn', function() {
-                              currentIndex = $(this).index('.playerMusicBtn#playerMusicBtn');
-                              var setting = $.parseJSON(localStorage.getItem("setting"));
-                              setting.play.currentIndex = currentIndex;
-                              localStorage.setItem("setting", JSON.stringify(setting));
-                          });
 
 			  // 点击删除按钮时触发事件
 			  $(document).on('click', '.deleteBtn', function() {
@@ -1723,34 +1728,76 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			    // 将更新后的值列表存储回本地存储中
 			    localStorage.setItem('storedValues', JSON.stringify(storedValues));
 			  });
+
+			  // 点击全部删除按钮时触发事件
+			  $(document).on('click', '#delAllItems', function() {
+			      if (!clickDelAllItems) {
+                                  topTip('<svg width="25" fill="#3b82f6" class="bi bi-question-square" viewBox="0 0 16 16"><path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/><path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/></svg><span style="font-weight: bolder;">确认要删除全部收藏歌曲吗？请双击删除全部收藏歌曲哦~<span>');
+                              } else {
+			          topTip('<svg width="25" fill="#3b82f6" viewBox="0 0 16 16"><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.553.553 0 0 1-1.1 0L7.1 4.995z"/></svg><span style="font-weight: bolder;">已删除全部收藏歌曲！撤销请再次双击！！撤销仅在刷新本页面前生效！！！<span>', 3500);
+                              }
+			  });
+
+                          var delAllItemsData;
+                          var clickDelAllItems = false;
+                          $(document).on('dblclick', '#delAllItems', function() {
+                              if (!clickDelAllItems) {
+                                  delAllItemsData = localStorage.getItem('storedValues');
+                                  localStorage.setItem("storedValues", '[]');
+			          topTip('<svg width="25" fill="#3b82f6" viewBox="0 0 16 16"><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.553.553 0 0 1-1.1 0L7.1 4.995z"/></svg><span style="font-weight: bolder;">已删除全部收藏歌曲！撤销请再次双击！！撤销仅在刷新本页面前生效！！！<span>', 3500);
+                                  clickDelAllItems = true;
+                              } else {
+                                  localStorage.setItem("storedValues", delAllItemsData);
+			          topTip('<svg width="25" fill="#3b82f6" viewBox="0 0 16 16"><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.553.553 0 0 1-1.1 0L7.1 4.995z"/></svg><span style="font-weight: bolder;">全部收藏歌曲已撤销删除！！！<span>');
+                                  clickDelAllItems = false;
+                              }
+			      updateValueList(JSON.parse(localStorage.getItem('storedValues')));
+                          });
 			
+			  $(document).on('click', '.playerMusicBtn#playerMusicBtn', function() {
+                              currentIndex = $(this).index('.playerMusicBtn#playerMusicBtn');
+                              var setting = $.parseJSON(localStorage.getItem("setting"));
+                              setting.play.currentIndex = currentIndex;
+                              localStorage.setItem("setting", JSON.stringify(setting));
+                          });
+
+			  var listPlayBtn = false;
+			  var clicklistPlayBtnTimes = 0;
 			  $(document).on('click', '#listPlayBtn', function() {
-                            var setting = $.parseJSON(localStorage.getItem("setting"));
-                            setting.play.Listplays = true;
-                            localStorage.setItem("setting", JSON.stringify(setting));
 			    var buttonList = $('.playerMusicBtn'); // 获取所有按钮
 			    function playNext() {
-			      if (currentIndex + 1 >= buttonList.length) {
-			        currentIndex = -1; // 如果已经播放到最后一个按钮，则从第一个按钮开始
-			      }
-			
-			      var buttonToClick = buttonList.eq(currentIndex + 1); // 获取要点击的按钮
-			
-			      if (buttonToClick.length && audio.currentTime == audio.duration || audio.currentTime == 0) {
-			        buttonToClick.click(); // 模拟点击按钮
-			      }
+                                if (listPlayBtn) {
+			            if (currentIndex + 1 >= buttonList.length) {
+			              currentIndex = -1; // 如果已经播放到最后一个按钮，则从第一个按钮开始
+			            }
+			    
+			            var buttonToClick = buttonList.eq(currentIndex + 1); // 获取要点击的按钮
+			  
+			            if (buttonToClick.length && audio.currentTime == audio.duration || audio.currentTime == 0) {
+			              buttonToClick.click(); // 模拟点击按钮
+			            }
+                                }
 			    }
 			
-			    audio.addEventListener('ended', function() {  
-			      playNext(); // 音频播放完毕时播放下一个按钮
-			    });
-			
-			    playNext(); // 开始播放第一个按钮
+			    if (!listPlayBtn) {
+                                                             	listPlayBtn = true;
+                                if (clicklistPlayBtnTimes == 0) {
+			            audio.addEventListener('ended', function() {  
+			              playNext(); // 音频播放完毕时播放下一个按钮
+			            });
+                                    clicklistPlayBtnTimes = clicklistPlayBtnTimes + 1;
+                                }
+			        playNext(); // 开始播放第一个按钮
+                                                                topTip('<svg width="25" fill="#3b82f6" viewBox="0 0 16 16"><path d="M12 13c0 1.105-1.12 2-2.5 2S7 14.105 7 13s1.12-2 2.5-2 2.5.895 2.5 2z"/><path fill-rule="evenodd" d="M12 3v10h-1V3h1z"/><path d="M11 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 16 2.22V4l-5 1V2.82z"/><path fill-rule="evenodd" d="M0 11.5a.5.5 0 0 1 .5-.5H4a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 .5 7H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 .5 3H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5z"/></svg>正在播放列表中的歌曲')
+                                                        } else {
+                                                             	listPlayBtn = false;
+                                                                topTip('<svg width="25" fill="#3b82f6" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>取消播放列表中的歌曲')
+                            }
 			  });
 			
 			
 			  var storedValues = JSON.parse(localStorage.getItem('storedValues'));
-			  if (storedValues) {
+			  if (localStorage.getItem('storedValues')) {
 			    updateValueList(storedValues);
 			  }
 			});
@@ -1761,10 +1808,8 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                if ($('#result').html() !== '') {
                                             $('#back').attr("style", "display:block");
 			                    $('#showValue').css({'top':'180px','transform': 'translateX(110%)'});
-			                    $('#listPlayBtn').css({'top':'180px','transform': 'translateX(220%)'});
                                         } else {
                                		    $('#showValue').css({'top':'180px'});
-			                    $('#listPlayBtn').css({'top':'180px'});
                                         }
 			                $('#lyric').attr("style", "display:block");
 			                $('#comments').show();
@@ -1773,7 +1818,6 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                $("#back").attr("value", "返回搜索");
 			                $("#back").html("返回搜索");
 			                $('#showValue').css({'top':'180px'});
-			                $('#listPlayBtn').css({'top':'180px'});
 			
 			                $("#songsnamesp").text(name);
 			                document.title = name + '🎵';
@@ -1820,47 +1864,6 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
                                            
 			                });
 			
-			                // 拼接请求的URL
-			                var url = "https://moeyy.cn/music/api/comment/music?id=" + id + '&br=320000&realIP=211.161.244.70';
-			
-			                // 发送GET请求
-			                $.get(url, function(data) {
-			                    // 获取评论列表
-			                    var comments = data.comments;
-			
-			                    // 创建一个div，用于显示评论
-			                    var div = $("<div class='commentList'></div>");
-			
-			                    // 遍历每条评论
-			                    for (var i = 0; i < comments.length; i++) {
-			                        // 获取评论者的头像和评论内容
-			                        var avatarUrl = comments[i].user.avatarUrl;
-			                        var content = comments[i].content;
-			
-			                        // 创建一个div，用于显示一条评论
-			                        var commentDiv = $("<div></div>");
-			
-			                        // 创建一个img，用于显示评论者的头像
-			                        var img = $("<img>").attr("src", avatarUrl).css("width", "30px").css("height", "30px");
-			
-			                        // 创建一个span，用于显示评论内容
-			                        var span = $("<span></span>").text(content);
-			
-			                        // 将img和span添加到commentDiv中
-			                        commentDiv.append(img);
-			                        commentDiv.append(span);
-			
-			                        // 将commentDiv添加到div中
-			                        div.append(commentDiv);
-			                    }
-			
-			                    // 将div添加到页面上
-			                    $("#comments").html(div);
-                                            if (localStorage.getItem('darkmode') == 'true') {
-                                              $('.commentList img').addClass('dark-mode');
-                                            }
-			                });
-
 			                // 拼接请求的URL
 			                var url = "https://moeyy.cn/music/api/lyric?id=" + id + '&br=320000&realIP=211.161.244.70';
 			
@@ -2001,6 +2004,47 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
                                    $("this tdBtn #playerMusicBtn").trigger("click");
                              });
 
+			                // 拼接请求的URL
+			                var url = "https://moeyy.cn/music/api/comment/music?id=" + id + '&br=320000&realIP=211.161.244.70';
+			
+			                // 发送GET请求
+			                $.get(url, function(data) {
+			                    // 获取评论列表
+			                    var comments = data.comments;
+			
+			                    // 创建一个div，用于显示评论
+			                    var div = $("<div class='commentList'></div>");
+			
+			                    // 遍历每条评论
+			                    for (var i = 0; i < comments.length; i++) {
+			                        // 获取评论者的头像和评论内容
+			                        var avatarUrl = comments[i].user.avatarUrl;
+			                        var content = comments[i].content;
+			
+			                        // 创建一个div，用于显示一条评论
+			                        var commentDiv = $("<div></div>");
+			
+			                        // 创建一个img，用于显示评论者的头像
+			                        var img = $("<img>").attr("src", avatarUrl).css("width", "30px").css("height", "30px");
+			
+			                        // 创建一个span，用于显示评论内容
+			                        var span = $("<span></span>").text(content);
+			
+			                        // 将img和span添加到commentDiv中
+			                        commentDiv.append(img);
+			                        commentDiv.append(span);
+			
+			                        // 将commentDiv添加到div中
+			                        div.append(commentDiv);
+			                    }
+			
+			                    // 将div添加到页面上
+			                    $("#comments").html(div);
+                                            if (localStorage.getItem('darkmode') == 'true') {
+                                              $('.commentList img').addClass('dark-mode');
+                                            }
+			                });
+
 			// 创建新的Driver实例
 			var driver3 = new Driver();
 			// 定义步骤
@@ -2135,10 +2179,12 @@ $(document).on('dblclick', '#result tr, #valueList tr', function () {
                                   $('#valueList').prepend(iobutton);
                               }
                               if ($('#valueList').css('display') == 'block') {
-			          $('#valueList').css({'display': 'none', 'backdrop-filter': ''});
+			          $('#valueList').css({'max-height': '0'});
+                                  setTimeout(function(){$('#valueList').hide();}, 270);
                                   $('#result').css('color', '');
                               } else if ($('#valueList').css('display') == 'none') {
-			          $('#valueList').css({'display': 'block', 'backdrop-filter': 'blur(5px);'});
+			          $('#valueList').css('display', 'block');
+			          setTimeout(function(){$('#valueList').css({'max-height': $('#valueList').val()});}, 0);
                                   $('#result').css('color', '#888888');
                               }
 			});
@@ -2161,7 +2207,6 @@ $(document).on('dblclick', '#result tr, #valueList tr', function () {
 
 			  function updateValueList(values) {
 			    $('#valueList').empty();
-			
 			    for (var i = 0; i < values.length; i++) {
 			      var title = values[i].title;
 			      var value = values[i].value;
@@ -2179,6 +2224,7 @@ $(document).on('dblclick', '#result tr, #valueList tr', function () {
 			      listItem.append(buttonDiv);
 			      $('#valueList').append(listItem);
 			    }
+                            $('#valueList').prepend('<tr><th>Name</th><th style="width: calc(50% - 90px);text-align: right;">ID</th><th><button id="listPlayBtn">播放全部</button><button id="delAllItems" style="position: absolute;top: 40px;right: 24px;z-index: 999;"><svg width="16" fill="red" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"></path><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"></path></svg></button></th></tr>');
                             if ($('#inputJson').text() == '') { 
                                 var iobutton = '<button id="outputJson">导出歌曲</button><button id="inputJson">导入歌曲</button>';
                                 $('#valueList').prepend(iobutton);
@@ -2526,7 +2572,7 @@ $('#drag-region').css('left', '30px');
 			});
 			
 			document.getElementById('close-btn').addEventListener('click', function() {
-                                                    topTip('<svg width="25" fill="#3b82f6" class="bi bi-question-square" viewBox="0 0 16 16"><path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/><path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/></svg>确认要关闭吗？请双击关闭哦~',2000);
+                                                    topTip('<svg width="25" fill="#3b82f6" class="bi bi-question-square" viewBox="0 0 16 16"><path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/><path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/></svg><span style="font-weight: bolder;">确认要关闭吗？请双击关闭哦~<span>',2000);
 			});
 
 			document.getElementById('close-btn').addEventListener('dblclick', function() {
