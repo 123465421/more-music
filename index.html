@@ -1210,10 +1210,10 @@ var currentIndex = -1; //播放列表当前播放曲数
     }
     localStorage.setItem("setting", JSON.stringify(setting));
 
+    currentIndex = setting.play.currentIndex;
     if ($.parseJSON(localStorage.getItem("setting")).play.time) { //继承“创业未半”（上次播放进度）
         audio.currentTime = setting.play.time;
         playerMusicThings(setting.play.id, setting.play.name, true);
-        currentIndex = setting.play.currentIndex;
     }
 
     if (setting.play.loop == true) {
@@ -1662,7 +1662,7 @@ function music(songUrl, pause = false) { // 播放音乐函数
 			
 			        // 创建一个表格
 			        var table = $("<table></table>");
-			
+
 			        // 遍历songs数组，获取每个歌曲的id和name
 			        for (var i = 0; i < songs.length; i++) {
 			            var id = songs[i].id;
@@ -1675,7 +1675,7 @@ function music(songUrl, pause = false) { // 播放音乐函数
 			
 			            // 创建两列，分别显示id和name
 			            var td1 = $("<td></td>").text(name);
-			            var td2 = $("<td class='tdBtn'></td>").text(id);
+			            var td2 = $("<td></td>").text(id);
 			
 			            topTip('<svg fill="#0d6efd" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/></svg>搜索成功！');
 			
@@ -1698,7 +1698,7 @@ function music(songUrl, pause = false) { // 播放音乐函数
 			            var td5 = tdBtn.append(mvBtn);
 			            var td6 = $("<td></td>").text(singer);
 
-			            // 将三列添加到行中
+			            // 将列添加到行中
 			            tr.append(td1);
 			            tr.append(td2);
 			            tr.append(td6);
@@ -1711,6 +1711,9 @@ function music(songUrl, pause = false) { // 播放音乐函数
 			            $("#result").html(table);
 			         }
 			       }
+				// 将行添加到表格中
+                                                                var tdWidth = Number($('#result td').width() + 9) + 'px';
+			        table.prepend('<tr style="position:sticky;top:8px;z-index:999;background-color: #d6e0fd;color: #335eea;border: 1px solid #8ab2f3;"><th style="width:'+tdWidth+';text-align: left;">曲名</th><th style="width:'+tdWidth+';text-align: left;">音乐ID</th><th style="width:'+tdWidth+';text-align: left;">歌手</th></tr>');
 
 if (!localStorage.getItem("setting")) {
     localStorage.setItem("setting", "{}");
@@ -2237,7 +2240,7 @@ $(document).on('dblclick', '#result tr, #valueList tr', function () {
                                   $('#result').css('color', '');
                               } else if ($('#valueList').css('display') == 'none') {
 			          $('#valueList').css('display', 'block');
-			          setTimeout(function(){$('#valueList').css({'max-height': $('#valueList').val()});}, 0);
+			          setTimeout(moveDown(), 50);
                                   $('#result').css('color', '#888888');
                               }
 			});
@@ -2277,7 +2280,7 @@ $(document).on('dblclick', '#result tr, #valueList tr', function () {
 			      listItem.append(buttonDiv);
 			      $('#valueList').append(listItem);
 			    }
-                            $('#valueList').prepend('<tr style="position:sticky;top:8px;z-index:999;background-color:#eaeffd;"><th>Name</th><th style="width: calc(50% - 82px);text-align: right;">ID</th><th><button id="listPlayBtn" class="valueListJson_Btn"><div class="svg-wrapper"><svg width="18" fill="currentColor" viewBox="0 0 16 16"><path d="M12 13c0 1.105-1.12 2-2.5 2S7 14.105 7 13s1.12-2 2.5-2 2.5.895 2.5 2z"/><path fill-rule="evenodd" d="M12 3v10h-1V3h1z"/><path d="M11 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 16 2.22V4l-5 1V2.82z"/><path fill-rule="evenodd" d="M0 11.5a.5.5 0 0 1 .5-.5H4a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 .5 7H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 .5 3H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5z"/></svg></div><span>播放全部</span></button><button id="delAllItems" style="position: absolute;top: 2px;right: 16px;z-index: 999;"><svg width="16" fill="red" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"></path><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"></path></svg></button></th></tr>');
+                            $('#valueList').prepend('<tr style="position:sticky;top:8px;z-index:999;background-color: #d6e0fd;color: #335eea;border: 1px solid #8ab2f3;"><th>曲名</th><th style="width: calc(50% - 40px);text-align: right;">音乐ID</th><th><button id="listPlayBtn" class="valueListJson_Btn"><div class="svg-wrapper"><svg width="18" fill="currentColor" viewBox="0 0 16 16"><path d="M12 13c0 1.105-1.12 2-2.5 2S7 14.105 7 13s1.12-2 2.5-2 2.5.895 2.5 2z"/><path fill-rule="evenodd" d="M12 3v10h-1V3h1z"/><path d="M11 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 16 2.22V4l-5 1V2.82z"/><path fill-rule="evenodd" d="M0 11.5a.5.5 0 0 1 .5-.5H4a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 .5 7H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 .5 3H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5z"/></svg></div><span>播放全部</span></button><button id="delAllItems" style="position: absolute;top: 2px;right: 16px;z-index: 999;"><svg width="16" fill="red" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"></path><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"></path></svg></button></th></tr>');
                             if ($('#inputJson').text() == '') { 
                                 var iobutton = '<div style="display:flex"><button id="outputJson" class="valueListJson_Btn"><div class="svg-wrapper"><svg width="18" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M3.5 10a.5.5 0 0 1-.5-.5v-8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 0 0 1h2A1.5 1.5 0 0 0 14 9.5v-8A1.5 1.5 0 0 0 12.5 0h-9A1.5 1.5 0 0 0 2 1.5v8A1.5 1.5 0 0 0 3.5 11h2a.5.5 0 0 0 0-1h-2z"></path><path fill-rule="evenodd" d="M7.646 15.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 14.293V5.5a.5.5 0 0 0-1 0v8.793l-2.146-2.147a.5.5 0 0 0-.708.708l3 3z"></path></svg></div><span>下载列表</span></button><button id="inputJson" class="valueListJson_Btn"><div class="svg-wrapper"><svg width="18" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg></div><span>导入列表</span></button></div>';
                                 $('#valueList').prepend(iobutton);
@@ -2762,7 +2765,5 @@ tray.menu = menu;
 
 }else {$('#window-controls').hide();}
 		</script>
-		<style id="stylediv"></style>
-		<script id="jqdiv"></script>
 	</body>
 </html>
