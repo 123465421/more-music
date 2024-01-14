@@ -130,26 +130,26 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
     border-radius: 12px;
 }
 
-#result tr td img {
+#result tr td img, #valueList tr td img {
     width: 0px;
     height: 0px;
     transition: all .3s;
     border-radius:5px;
 }
 
-#result tr td:not(.tdBtn):hover img {
+#result tr td:not(.tdBtn):hover img, #valueList tr td:not(.tdBtn):hover img {
     width: 30px;
     height: 30px;
 }
 
-#result tr td span {
+#result tr td span, #valueList tr td span {
     transition: all .3s;
     height: 100%;
     display: block;
     margin-top: -18px;
 }
 
-#result tr td:not(.tdBtn):hover span {
+#result tr td:not(.tdBtn):hover span, #valueList tr td:not(.tdBtn):hover span {
     font-size: 14px;
     margin-top: 0px;
 }
@@ -219,9 +219,9 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
             transition-duration: 0.5s;
         }
 
-        #valueList tr span {
+        #valueList tr td{
+            width: 25%;
             margin: 5px;
-            width: 50%;
         }
 
 .valueListJson_Btn {
@@ -2316,6 +2316,7 @@ $(document).on('dblclick', '#result tr, #valueList tr', function () {
                                   $('#result').css('color', '');
                               } else if ($('#valueList').css('display') == 'none') {
 			          $('#valueList').css('display', 'block');
+                                  $('.valueListTh th').width(Number($('#valueList tr:eq(1) td').width() + 30))
 			          setTimeout(moveDown(), 50);
                                   $('#result').css('color', '#888888');
                               }
@@ -2339,24 +2340,41 @@ $(document).on('dblclick', '#result tr, #valueList tr', function () {
 
 			  function updateValueList(values) {
 			    $('#valueList').empty();
+                            var idArray = [];
 			    for (var i = 0; i < values.length; i++) {
 			      var title = values[i].title;
 			      var value = values[i].value;
+                              idArray.push(value);
                               var buttonDiv = $('<div class="tdBtn" style="width: 120px">');
 			      var listItem = $('<tr title="' + title + '"  name="' + value + '">"');
 			
-			      var titleElement = $('<span>').addClass('title').text(title);
-			      var valueElement = $('<span>').addClass('value').text(value);
+			      var titleElement = $('<td>').html('<span>' + title + '</span>');
 			      var button = $("<button id='playerMusicBtn' class='playerMusicBtn'></button>").html('<svg width="16" fill="#3b82f6" viewBox="0 0 16 16"><path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/></svg>');
 			      var deleteButton = $('<button>').addClass('deleteBtn').html('<svg width="16" fill="red" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>').data('value', value);
-			
 			      listItem.append(titleElement);
-			      listItem.append(valueElement);
+			      listItem.append("<td></td>");
+			      listItem.append("<td></td>");
 			      buttonDiv.append(button, deleteButton);
 			      listItem.append(buttonDiv);
 			      $('#valueList').append(listItem);
 			    }
-                            $('#valueList').prepend('<tr style="position:sticky;top:8px;z-index:999;background-color: #d6e0fd;color: #335eea;border: 1px solid #8ab2f3;"><th>曲名</th><th style="width: calc(50% - 40px);text-align: right;">音乐ID</th><th><button id="listPlayBtn" class="valueListJson_Btn"><div class="svg-wrapper"><svg width="18" fill="currentColor" viewBox="0 0 16 16"><path d="M12 13c0 1.105-1.12 2-2.5 2S7 14.105 7 13s1.12-2 2.5-2 2.5.895 2.5 2z"/><path fill-rule="evenodd" d="M12 3v10h-1V3h1z"/><path d="M11 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 16 2.22V4l-5 1V2.82z"/><path fill-rule="evenodd" d="M0 11.5a.5.5 0 0 1 .5-.5H4a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 .5 7H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 .5 3H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5z"/></svg></div><span>播放全部</span></button><button id="delAllItems" style="position: absolute;top: 2px;right: 16px;z-index: 999;"><svg width="16" fill="red" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"></path><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"></path></svg></button></th></tr>');
+                            //获取歌曲详细信息
+                                                        $.ajax({
+			        url: "https://moeyy.cn/music/api/song/detail?ids=" + idArray.toString() + '&realIP=211.161.244.70',
+			        method: 'GET',
+			        success: function(data) {
+                                    for (var i = 0; i < data.songs.length; i++) {
+                                        if (data.songs[i].noCopyrightRcmd) {
+                                            $("#valueList tr:eq("+Number(i+1)+")").css('color', '#555555');
+                                            $("#valueList tr:eq("+Number(i+1)+") td:eq(0)").text($("#result table tr:eq("+Number(i+1)+") td:eq(0)").text() + "(无版权)");
+                                        }
+                                        $("#valueList tr:eq("+ Number(i+1) +") td:eq(1)").html(data.songs[i].ar.map(item => item.name)[0]);
+                                        $("#valueList tr:eq("+ Number(i+1) +") td:eq(2)").html(Math.floor(data.songs[i].dt/60000) + ':' + (Math.floor(data.songs[i].dt/1000 - Math.floor(data.songs[i].dt/60000)*60)).toString().padStart(2,0));
+                                        $("#valueList tr:eq("+ Number(i+1) +") td:eq(0)").prepend('<img loading="lazy" src="' + data.songs[i].al.picUrl + '">');
+                                    }
+                                }
+                            });
+                            $('#valueList').prepend('<tr class="valueListTh" style="position:sticky;top:8px;z-index:999;background-color: #d6e0fd;color: #335eea;border: 1px solid #8ab2f3;"><th style="width:100px;text-align: left;">曲名</th><th style="width:100px;text-align: left;">歌手</th><th style="width:100px;text-align: left;">时长</th><th><button id="listPlayBtn" class="valueListJson_Btn"><div class="svg-wrapper"><svg width="18" fill="currentColor" viewBox="0 0 16 16"><path d="M12 13c0 1.105-1.12 2-2.5 2S7 14.105 7 13s1.12-2 2.5-2 2.5.895 2.5 2z"/><path fill-rule="evenodd" d="M12 3v10h-1V3h1z"/><path d="M11 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 16 2.22V4l-5 1V2.82z"/><path fill-rule="evenodd" d="M0 11.5a.5.5 0 0 1 .5-.5H4a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 .5 7H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 .5 3H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5z"/></svg></div><span>播放全部</span></button><button id="delAllItems" style="position: absolute;top: 2px;right: 16px;z-index: 999;"><svg width="16" fill="red" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"></path><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"></path></svg></button></th></tr>');
                             if ($('#inputJson').text() == '') { 
                                 var iobutton = '<div style="display:flex"><button id="outputJson" class="valueListJson_Btn"><div class="svg-wrapper"><svg width="18" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M3.5 10a.5.5 0 0 1-.5-.5v-8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 0 0 1h2A1.5 1.5 0 0 0 14 9.5v-8A1.5 1.5 0 0 0 12.5 0h-9A1.5 1.5 0 0 0 2 1.5v8A1.5 1.5 0 0 0 3.5 11h2a.5.5 0 0 0 0-1h-2z"></path><path fill-rule="evenodd" d="M7.646 15.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 14.293V5.5a.5.5 0 0 0-1 0v8.793l-2.146-2.147a.5.5 0 0 0-.708.708l3 3z"></path></svg></div><span>下载列表</span></button><button id="inputJson" class="valueListJson_Btn"><div class="svg-wrapper"><svg width="18" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg></div><span>导入列表</span></button></div>';
                                 $('#valueList').prepend(iobutton);
