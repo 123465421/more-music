@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 	<head>
+                <meta name="keywords" content="音乐mv, 网易云音乐api, 网易云音乐, 在线音乐, 音乐播放器, 音乐, HTML, CSS, JavaScript">
+                <meta name="description" content="Moren在线音乐播放器 支持音乐mv播放 音乐搜索播放 音乐歌词评论歌词显示"/>
+                <meta name="author" content="More_n">
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-                <title>more music</title>
+                <title>More Music</title>
 		<link href="other/img/logo3.png" rel="icon" type="image/x-ico">
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 		<script src="other/jquery.js"></script>
@@ -93,7 +96,7 @@ html {
   margin: 5px;
 }
 
-svg,button:not(#settingBtn, #closeTab),input,img,.sound{
+button:not(#settingBtn, #closeTab),input,img,.sound{
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
     border-radius:20px;
     padding: 2px;
@@ -125,6 +128,30 @@ svg,button:not(#settingBtn, #closeTab),input,img,.sound{
     margin-top: 5px;
     transition: all .3s;
     border-radius: 12px;
+}
+
+#result tr td img {
+    width: 0px;
+    height: 0px;
+    transition: all .3s;
+    border-radius:5px;
+}
+
+#result tr td:not(.tdBtn):hover img {
+    width: 30px;
+    height: 30px;
+}
+
+#result tr td span {
+    transition: all .3s;
+    height: 100%;
+    display: block;
+    margin-top: -18px;
+}
+
+#result tr td:not(.tdBtn):hover span {
+    font-size: 14px;
+    margin-top: 0px;
 }
 
 #result .flexright {
@@ -422,10 +449,11 @@ body {
   backdrop-filter: blur(15px);
   transition: 0.3s;
 }
-
-::-webkit-scrollbar {
-  display: none;
+  
+*::-webkit-scrollbar {  
+    display: none;
 }
+
 button {
   font-family: monospace;
   background-color: rgba(255,255,255,0.6);
@@ -1042,6 +1070,38 @@ radial-gradient(at 55% 24%, hsla(138,60%,62%,1) 0px, transparent 50%);
   margin-left: 10px;
 }
 
+.circle {
+ fill: none;
+ stroke: hsl(214, 97%, 59%);
+ stroke-width: 2;
+ stroke-dasharray: 1, 200;
+ stroke-dashoffset: 0;
+ stroke-linecap: round;
+ animation: dash4 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate4 {
+ 100% {
+  transform: rotate(360deg);
+ }
+}
+
+@keyframes dash4 {
+ 0% {
+  stroke-dasharray: 1, 200;
+  stroke-dashoffset: 0;
+ }
+
+ 50% {
+  stroke-dasharray: 90, 200;
+  stroke-dashoffset: -35px;
+ }
+
+ 100% {
+  stroke-dashoffset: -125px;
+ }
+}
+
  @media screen and (max-width: 1355px){
           #result{
             max-width:90%;
@@ -1322,13 +1382,6 @@ function drawSpectrum() {
     cxt.stroke();
     cxt.closePath();
 
-    //画一个空心小圆，将线条覆盖  
-    cxt.beginPath();  
-    cxt.lineWidth = 1;  
-    cxt.arc(potInt.x, potInt.y, R, 0, 2 * Math.PI, false);   
-    cxt.stroke();   
-    cxt.closePath();  
-
     // 创建第二个新的渐变  
     var gradient2 = cxt.createLinearGradient(0, 0, 2*R, 2*R);  
   
@@ -1594,7 +1647,7 @@ function music(songUrl, pause = false) { // 播放音乐函数
 			          for (var i in tip) {
 			            var tips = tip[i].name;
 			            var tipsName = tip[i].id;
-			            var tipsTab = '<tr title="' + tipsName + '"  name="' + tips + '"><td><button id="playerMusicBtn" class="tips">' + tips + '</button></td></tr>';
+			            var tipsTab = '<tr title="' + tips + '"  name="' + tipsName + '"><td><button id="playerMusicBtn" class="tips">' + tips + '</button></td></tr>';
 			            $('#tip').append(tipsTab);
 			          }
 			        }
@@ -1622,8 +1675,8 @@ function music(songUrl, pause = false) { // 播放音乐函数
 
 			// 定义一个函数，用于发送请求并处理响应
 			function searchSong() {
+			    var searchSongName = input.val();
 			    // 获取输入框的值
-			    var songName = input.val();
 			    var songnumer = songnum.val();
 			
 			    $('#lyric').attr("style", "display:none");
@@ -1635,10 +1688,10 @@ function music(songUrl, pause = false) { // 播放音乐函数
                             $('#tip').fadeOut();
 			
 			    // 拼接请求的URL
-			    var url = "https://moeyy.cn/music/api/search?keywords=" + songName + "&limit=" + songnumer + '&br=320000&realIP=211.161.244.70';
+			    var url = "https://moeyy.cn/music/api/search?keywords=" + searchSongName + "&limit=" + songnumer + '&br=320000&realIP=211.161.244.70';
 			
 			
-			    topTip('<svg viewBox="0 0 16 16" style="fill:#3b82f6;"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"</path></svg>正在搜索音乐' + songName + '...');
+			    topTip('<svg viewBox="0 0 16 16" style="fill:#3b82f6;"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"</path></svg>正在搜索音乐' + searchSongName + '...');
 			
 			    moveDown();
 
@@ -1647,7 +1700,6 @@ function music(songUrl, pause = false) { // 播放音乐函数
 			  url: url,
 			  method: 'GET',
 			  success: function(data) {
-			
 			        if (Object.keys(data).length === 1 && data.hasOwnProperty('code')) {
 			          // 请求失败
 			          topTip('<svg viewBox="0 0 16 16"><path fill="red" d="M4.355.522a.5.5 0 0 1 .623.333l.291.956A4.979 4.979 0 0 1 8 1c1.007 0 1.946.298 2.731.811l.29-.956a.5.5 0 1 1 .957.29l-.41 1.352A4.985 4.985 0 0 1 13 6h.5a.5.5 0 0 0 .5-.5V5a.5.5 0 0 1 1 0v.5A1.5 1.5 0 0 1 13.5 7H13v1h1.5a.5.5 0 0 1 0 1H13v1h.5a1.5 1.5 0 0 1 1.5 1.5v.5a.5.5 0 1 1-1 0v-.5a.5.5 0 0 0-.5-.5H13a5 5 0 0 1-10 0h-.5a.5.5 0 0 0-.5.5v.5a.5.5 0 1 1-1 0v-.5A1.5 1.5 0 0 1 2.5 10H3V9H1.5a.5.5 0 0 1 0-1H3V7h-.5A1.5 1.5 0 0 1 1 5.5V5a.5.5 0 0 1 1 0v.5a.5.5 0 0 0 .5.5H3c0-1.364.547-2.601 1.432-3.503l-.41-1.352a.5.5 0 0 1 .333-.623zM4 7v4a4 4 0 0 0 3.5 3.97V7H4zm4.5 0v7.97A4 4 0 0 0 12 11V7H8.5zM12 6a3.989 3.989 0 0 0-1.334-2.982A3.983 3.983 0 0 0 8 2a3.983 3.983 0 0 0-2.667 1.018A3.989 3.989 0 0 0 4 6h8z"/></svg>搜索失败.稍等片刻');
@@ -1660,6 +1712,9 @@ function music(songUrl, pause = false) { // 播放音乐函数
 			        // 查找songs信息
 			        var songs = data.result.songs;
 			
+                                //储存id数组
+                                                                var idArray = [];
+
 			        // 创建一个表格
 			        var table = $("<table></table>");
 
@@ -1669,13 +1724,15 @@ function music(songUrl, pause = false) { // 播放音乐函数
 			            var name = songs[i].name;
 			            var mvid = songs[i].mvid;
                                     var singer = songs[i].artists[0].name;
-			
+
+		                    idArray.push(id);
+
 			            // 创建一行
-			            var tr = $("<tr title='" + id + "'  name='" + name + "'></tr>");
+			            var tr = $("<tr title='" + name + "'  name='" + id + "'></tr>");
 			
 			            // 创建两列，分别显示id和name
-			            var td1 = $("<td></td>").text(name);
-			            var td2 = $("<td></td>").text(id);
+			            var td1 = $("<td></td>").html('<span>' + name + '</span>');
+			            var td2 = $("<td></td>").text(singer);
 			
 			            topTip('<svg fill="#0d6efd" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/></svg>搜索成功！');
 			
@@ -1686,9 +1743,9 @@ function music(songUrl, pause = false) { // 播放音乐函数
 			
 			            if(mvid == 0){
 			              var mvBtn = $("<button class='canNotClick' disabled='disabled'></button>").html('<svg width="16" fill="#3b82f6" viewBox="0 0 16 16"><path d="M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814l-3.5-2.5z"/><path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm15 0a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>');
-			}else{
+			            }else{
 			              var mvBtn = $("<button id='mvBtn' value='" + mvid + "' title='" + name + "'></button>").html('<svg width="16" fill="#3b82f6" viewBox="0 0 16 16"><path d="M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814l-3.5-2.5z"/><path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm15 0a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>');
-			}
+			            }
 			
 
 			            // 将按钮添加到列中
@@ -1696,7 +1753,7 @@ function music(songUrl, pause = false) { // 播放音乐函数
 			            var td3 = tdBtn.append(button);
 			            var td4 = tdBtn.append(addBtn);
 			            var td5 = tdBtn.append(mvBtn);
-			            var td6 = $("<td></td>").text(singer);
+			            var td6 = $("<td></td>").text('0:00');
 
 			            // 将列添加到行中
 			            tr.append(td1);
@@ -1711,9 +1768,27 @@ function music(songUrl, pause = false) { // 播放音乐函数
 			            $("#result").html(table);
 			         }
 			       }
+
+                                //获取歌曲详细信息
+                    			$.ajax({
+			            url: "https://moeyy.cn/music/api/song/detail?ids=" + idArray.toString() + '&realIP=211.161.244.70',
+			            method: 'GET',
+			            success: function(data) {
+                                        for (var i = 0; i < data.songs.length; i++) {
+                                            if (data.songs[i].noCopyrightRcmd) {
+                                                $("#result table tr:eq("+Number(i+1)+")").css('color', '#555555');
+                                                $("#result table tr:eq("+Number(i+1)+") td:eq(0)").text($("#result table tr:eq("+Number(i+1)+") td:eq(0)").text() + "(无版权)");
+                                            }
+                                            $("#result table tr:eq("+Number(i+1)+") td:eq(2)").html(Math.floor(data.songs[i].dt/60000) + ':' + (Math.floor(data.songs[i].dt/1000 - Math.floor(data.songs[i].dt/60000)*60)).toString().padStart(2,0));
+                                            $("#result table tr:eq("+Number(i+1)+") td:eq(0)").prepend('<img src="' + data.songs[i].al.picUrl + '">');
+                                        }
+                                    }
+                                });
+
 				// 将行添加到表格中
-                                                                var tdWidth = Number($('#result td').width() + 9) + 'px';
-			        table.prepend('<tr style="position:sticky;top:8px;z-index:999;background-color: #d6e0fd;color: #335eea;border: 1px solid #8ab2f3;"><th style="width:'+tdWidth+';text-align: left;">曲名</th><th style="width:'+tdWidth+';text-align: left;">音乐ID</th><th style="width:'+tdWidth+';text-align: left;">歌手</th></tr>');
+                                var tdWidth = Number($('#result td').width() + 9) + 'px';
+			        table.prepend('<tr class="resultTh" style="position:sticky;top:8px;z-index:999;background-color: #d6e0fd;color: #335eea;border: 1px solid #8ab2f3;"><th style="width:'+tdWidth+';text-align: left;">曲名</th><th style="width:'+tdWidth+';text-align: left;">歌手</th><th style="width:'+tdWidth+';text-align: left;">时长</th></tr>');
+                                table.append('<tr><td><button id="searchMore" title="' + searchSongName + '">更多</button></td></tr>');
 
 if (!localStorage.getItem("setting")) {
     localStorage.setItem("setting", "{}");
@@ -1735,8 +1810,8 @@ localStorage.setItem("setting", JSON.stringify(setting));
 			
 			$(document).ready(function() {
 			  $(document).on('click', '#addBtn', function() {
-			    var btnValue = $(this).parent().parent().attr('title');
-			    var btnTitle = $(this).parent().parent().attr('name');
+			    var btnValue = $(this).parent().parent().attr('name');
+			    var btnTitle = $(this).parent().parent().attr('title');
 
 // 获取已储存在本地的值列表
 var storedValues = JSON.parse(localStorage.getItem('storedValues')) || [];
@@ -1883,14 +1958,14 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			
 			                // 发送GET请求
 			                $.get(url, function(data) {
-			
 			                    // 获取歌曲的URL
 			                    var songUrl = data.data[0].url;
-			                    if (songUrl) {
+			                    if (songUrl !== null) {
                                                 topTip('<svg fill="#3b82f6" viewBox="0 0 16 16"><path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z"/><path fill-rule="evenodd" d="M9 3v10H8V3h1z"/><path d="M8 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 13 2.22V4L8 5V2.82z"/></svg>开始播放' + name + '~');
+			                        music(songUrl, pause);
+                                            } else {
+                                                topTip('<svg fill="#3b82f6" viewBox="0 0 16 16"><path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z"/><path fill-rule="evenodd" d="M9 3v10H8V3h1z"/><path d="M8 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 13 2.22V4L8 5V2.82z"/></svg>' + name + '暂无版权哦~');
                                             }
-
-			                    music(songUrl, pause);
 			                });
 		
 			
@@ -2022,8 +2097,9 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                                lines.eq(currentIndex).removeClass("active");
 			
 			                                // 将当前歌词行添加突出样式
-                                                                                                                if (lines.eq(index).text() == '') {
-                                                            lines.eq(index).height(20);
+                                                        if (lines.eq(index).text() == '') {
+                                                            lines.eq(index).height(35);
+                                                            lines.eq(index).text('......');
                                                         }
 			                                lines.eq(index).addClass("active");
 			                                lines.eq(index).append('<i class="underline"></i>');
@@ -2151,7 +2227,7 @@ localStorage.setItem("setting", JSON.stringify(setting));
 
 			// 事件委托绑定按钮点击事件处理程序
 			$(document).on('click', '#playerMusicBtn', function(){
-                            playerMusicThings($(this).parent().parent().attr('title'), $(this).parent().parent().attr('name'));
+                            playerMusicThings($(this).parent().parent().attr('name'), $(this).parent().parent().attr('title'));
                             $('#result tr, #valueList tr').removeClass("hover");
                             $('.tallshort').remove();
                             $(this).parent().parent().addClass("hover");
@@ -2267,7 +2343,7 @@ $(document).on('dblclick', '#result tr, #valueList tr', function () {
 			      var title = values[i].title;
 			      var value = values[i].value;
                               var buttonDiv = $('<div class="tdBtn" style="width: 120px">');
-			      var listItem = $('<tr title="' + value + '"  name="' + title + '">"');
+			      var listItem = $('<tr title="' + title + '"  name="' + value + '">"');
 			
 			      var titleElement = $('<span>').addClass('title').text(title);
 			      var valueElement = $('<span>').addClass('value').text(value);
@@ -2286,6 +2362,108 @@ $(document).on('dblclick', '#result tr, #valueList tr', function () {
                                 $('#valueList').prepend(iobutton);
                             }
 			  }
+
+var searchOffset = 0;
+$(document).on("click", "#searchMore", function (){
+                        searchOffset = searchOffset + 30;
+                        var searchSongName = $(this).attr('title');
+                        $('#searchMore').parent().html('<svg viewBox="25 25 50 50" style="width: 2em;transform-origin: center;animation: rotate4 1.5s linear infinite;"><circle class="circle" r="20" cy="50" cx="50"></circle></svg>');
+			// 拼接请求的URL
+			var url = "https://moeyy.cn/music/api/search?keywords=" + searchSongName + "&offset=" + searchOffset + "&br=320000&realIP=211.161.244.70";
+
+			// 发送GET请求
+			$.ajax({
+			  url: url,
+			  method: 'GET',
+			  success: function(data) {
+			        if (Object.keys(data).length === 1 && data.hasOwnProperty('code')) {
+			          // 请求失败
+			          topTip('<svg viewBox="0 0 16 16"><path fill="red" d="M4.355.522a.5.5 0 0 1 .623.333l.291.956A4.979 4.979 0 0 1 8 1c1.007 0 1.946.298 2.731.811l.29-.956a.5.5 0 1 1 .957.29l-.41 1.352A4.985 4.985 0 0 1 13 6h.5a.5.5 0 0 0 .5-.5V5a.5.5 0 0 1 1 0v.5A1.5 1.5 0 0 1 13.5 7H13v1h1.5a.5.5 0 0 1 0 1H13v1h.5a1.5 1.5 0 0 1 1.5 1.5v.5a.5.5 0 1 1-1 0v-.5a.5.5 0 0 0-.5-.5H13a5 5 0 0 1-10 0h-.5a.5.5 0 0 0-.5.5v.5a.5.5 0 1 1-1 0v-.5A1.5 1.5 0 0 1 2.5 10H3V9H1.5a.5.5 0 0 1 0-1H3V7h-.5A1.5 1.5 0 0 1 1 5.5V5a.5.5 0 0 1 1 0v.5a.5.5 0 0 0 .5.5H3c0-1.364.547-2.601 1.432-3.503l-.41-1.352a.5.5 0 0 1 .333-.623zM4 7v4a4 4 0 0 0 3.5 3.97V7H4zm4.5 0v7.97A4 4 0 0 0 12 11V7H8.5zM12 6a3.989 3.989 0 0 0-1.334-2.982A3.983 3.983 0 0 0 8 2a3.983 3.983 0 0 0-2.667 1.018A3.989 3.989 0 0 0 4 6h8z"/></svg>搜索失败.稍等片刻');
+			        }
+                                else if(data.result.songCount == 0){
+			          topTip('<svg viewBox="0 0 16 16"><path fill="#3b82f6" d="M4.355.522a.5.5 0 0 1 .623.333l.291.956A4.979 4.979 0 0 1 8 1c1.007 0 1.946.298 2.731.811l.29-.956a.5.5 0 1 1 .957.29l-.41 1.352A4.985 4.985 0 0 1 13 6h.5a.5.5 0 0 0 .5-.5V5a.5.5 0 0 1 1 0v.5A1.5 1.5 0 0 1 13.5 7H13v1h1.5a.5.5 0 0 1 0 1H13v1h.5a1.5 1.5 0 0 1 1.5 1.5v.5a.5.5 0 1 1-1 0v-.5a.5.5 0 0 0-.5-.5H13a5 5 0 0 1-10 0h-.5a.5.5 0 0 0-.5.5v.5a.5.5 0 1 1-1 0v-.5A1.5 1.5 0 0 1 2.5 10H3V9H1.5a.5.5 0 0 1 0-1H3V7h-.5A1.5 1.5 0 0 1 1 5.5V5a.5.5 0 0 1 1 0v.5a.5.5 0 0 0 .5.5H3c0-1.364.547-2.601 1.432-3.503l-.41-1.352a.5.5 0 0 1 .333-.623zM4 7v4a4 4 0 0 0 3.5 3.97V7H4zm4.5 0v7.97A4 4 0 0 0 12 11V7H8.5zM12 6a3.989 3.989 0 0 0-1.334-2.982A3.983 3.983 0 0 0 8 2a3.983 3.983 0 0 0-2.667 1.018A3.989 3.989 0 0 0 4 6h8z"/></svg>已经到底了哦！');
+                                  $('#searchMore').parent().parent().remove();
+			        } else {
+
+                                if(typeof data.result.songs !== 'undefined'){
+			            // 查找songs信息
+			            var songs = data.result.songs;
+
+                                    //储存id数组
+                                                                        var idArray = [];
+
+			            // 遍历songs数组，获取每个歌曲的id和name
+			            for (var i = 0; i < songs.length; i++) {
+			                var id = songs[i].id;
+			                var name = songs[i].name;
+			                var mvid = songs[i].mvid;
+                                        var singer = songs[i].artists[0].name;
+			
+                                        idArray.push(id);
+
+			                // 创建一行
+			                var tr = $("<tr title='" + name + "'  name='" + id + "'></tr>");
+			
+			                // 创建两列，分别显示id和name
+			                var td1 = $("<td></td>").html('<span>' + name + '</span>');
+			                var td2 = $("<td></td>").text(singer);
+			
+			                topTip('<svg fill="#0d6efd" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/></svg>搜索成功！');
+			
+			                // 创建一个按钮，用于播放该歌曲
+			                var button = $("<button id='playerMusicBtn'></button>").html('<svg width="16" fill="#3b82f6" viewBox="0 0 16 16"><path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/></svg>');
+			
+			                var addBtn = $("<button id='addBtn'></button>").html('<svg width="16" fill="#3b82f6" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/></svg>');
+			
+			                if(mvid == 0){
+			                    var mvBtn = $("<button class='canNotClick' disabled='disabled'></button>").html('<svg width="16" fill="#3b82f6" viewBox="0 0 16 16"><path d="M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814l-3.5-2.5z"/><path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm15 0a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>');
+			                }else{
+			                    var mvBtn = $("<button id='mvBtn' value='" + mvid + "' title='" + name + "'></button>").html('<svg width="16" fill="#3b82f6" viewBox="0 0 16 16"><path d="M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814l-3.5-2.5z"/><path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm15 0a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>');
+			                }
+			
+
+			                // 将按钮添加到列中
+                                        var tdBtn = $("<td class='tdBtn'></td>");
+			                var td3 = tdBtn.append(button);
+			                var td4 = tdBtn.append(addBtn);
+			                var td5 = tdBtn.append(mvBtn);
+			                var td6 = $("<td></td>").text('0:00');
+
+			                // 将列添加到行中
+			                tr.append(td1);
+			                tr.append(td2);
+			                tr.append(td6);
+			                tr.append(td3);
+			                tr.append(td5);
+			                tr.append(td4);
+			                // 将行添加到表格中
+			                $('#result table').append(tr);
+			             }
+			           }
+                                   //获取歌曲详细信息
+                    			   $.ajax({
+			               url: "https://moeyy.cn/music/api/song/detail?ids=" + idArray.toString() + '&realIP=211.161.244.70',
+			               method: 'GET',
+			               success: function(data) {
+                                           for (var i = 0; i < data.songs.length; i++) {
+                                               if (data.songs[i].noCopyrightRcmd) {
+                                                   $("#result table tr:eq("+Number(i+1+searchOffset)+")").css('color', '#555555');
+                                                   $("#result table tr:eq("+Number(i+1+searchOffset)+") td:eq(0)").text($("#result table tr:eq("+Number(i+1)+") td:eq(0)").text() + "(无版权)");
+                                               }
+                                               $("#result table tr:eq("+Number(i+1+searchOffset)+") td:eq(2)").html(Math.floor(data.songs[i].dt/60000) + ':' + (Math.floor(data.songs[i].dt/1000 - Math.floor(data.songs[i].dt/60000)*60)).toString().padStart(2,0));
+                                               $("#result table tr:eq("+Number(i+1+searchOffset)+") td:eq(0)").prepend('<img src="' + data.songs[i].al.picUrl + '">');
+                                           }
+                                           if (data.songs.length = 30) { 
+                                               $('#result table').append('<tr><td><button id="searchMore" title="' + searchSongName + '">更多</button></td></tr>');
+                                           }
+                                       }
+                                   });
+                                   $('.circle').parent().parent().parent().remove();
+                                   $('.resultTh th').css('width', Number($('#result td').width() + 9) + 'px')
+            }
+        }
+    });
+});
 
 $(document).on("click", "#outputJson", function (){
     // 从LocalStorage获取storedValues  
