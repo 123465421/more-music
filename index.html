@@ -1780,7 +1780,7 @@ function music(songUrl, pause = false) { // 播放音乐函数
                                                 $("#result table tr:eq("+Number(i+1)+") td:eq(0)").text($("#result table tr:eq("+Number(i+1)+") td:eq(0)").text() + "(无版权)");
                                             }
                                             $("#result table tr:eq("+Number(i+1)+") td:eq(2)").html(Math.floor(data.songs[i].dt/60000) + ':' + (Math.floor(data.songs[i].dt/1000 - Math.floor(data.songs[i].dt/60000)*60)).toString().padStart(2,0));
-                                            $("#result table tr:eq("+Number(i+1)+") td:eq(0)").prepend('<img src="' + data.songs[i].al.picUrl + '">');
+                                            $("#result table tr:eq("+Number(i+1)+") td:eq(0)").prepend('<img loading="lazy" src="' + data.songs[i].al.picUrl + '">');
                                         }
                                     }
                                 });
@@ -2157,7 +2157,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                        var commentDiv = $("<div></div>");
 			
 			                        // 创建一个img，用于显示评论者的头像
-			                        var img = $("<img>").attr("src", avatarUrl).css("width", "30px").css("height", "30px");
+			                        var img = $("<img>").attr("src", avatarUrl).css("width", "30px").css("height", "30px").attr('loading', 'lazy');
 			
 			                        // 创建一个span，用于显示评论内容
 			                        var span = $("<span></span>").text(content);
@@ -2451,7 +2451,7 @@ $(document).on("click", "#searchMore", function (){
                                                    $("#result table tr:eq("+Number(i+1+searchOffset)+") td:eq(0)").text($("#result table tr:eq("+Number(i+1)+") td:eq(0)").text() + "(无版权)");
                                                }
                                                $("#result table tr:eq("+Number(i+1+searchOffset)+") td:eq(2)").html(Math.floor(data.songs[i].dt/60000) + ':' + (Math.floor(data.songs[i].dt/1000 - Math.floor(data.songs[i].dt/60000)*60)).toString().padStart(2,0));
-                                               $("#result table tr:eq("+Number(i+1+searchOffset)+") td:eq(0)").prepend('<img src="' + data.songs[i].al.picUrl + '">');
+                                               $("#result table tr:eq("+Number(i+1+searchOffset)+") td:eq(0)").prepend('<img loading="lazy" src="' + data.songs[i].al.picUrl + '">');
                                            }
                                            if (data.songs.length = 30) { 
                                                $('#result table').append('<tr><td><button id="searchMore" title="' + searchSongName + '">更多</button></td></tr>');
