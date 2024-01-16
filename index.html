@@ -1432,7 +1432,7 @@ volume();
     var audioVolume = audio.volume;
     var VolumeIsChange = false;
     $('.imghoverBtnImg').click(function() {  
-        if (audiodisplay == 0 && JSON.parse(localStorage.getItem("setting")).showaudio || !localStorage.getItem("setting")) {
+        if (audiodisplay == 0 && JSON.parse(localStorage.getItem("setting")).showaudio == "no" || !localStorage.getItem("setting")) {
             context = new AudioContext;
 	    source = context.createMediaElementSource(audio);
    	    analyser = context.createAnalyser();
@@ -1529,7 +1529,7 @@ function music(songUrl, pause = false) { // 播放音乐函数
 			                        if(audio.load && !pause){
                                                     audio.play();
 			                            $('#imghoverBtn').html('<svg width="25" fill="rgba(255,255,255,0.8)" viewBox="0 0 16 16"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"/></svg>');
-                                                    if (audiodisplay == 0 && JSON.parse(localStorage.getItem("setting")).showaudio || !localStorage.getItem("setting")) {
+                                                    if (audiodisplay == 0 && JSON.parse(localStorage.getItem("setting")).showaudio == "no" || !localStorage.getItem("setting")) {
                                                         context = new AudioContext;
 			                                source = context.createMediaElementSource(audio);
    		                                        analyser = context.createAnalyser();
