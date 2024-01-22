@@ -147,7 +147,7 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
     transition: all .3s;
     height: 100%;
     display: block;
-    margin-top: -38px;
+    margin-top: -42px;
 }
 
 #result tr td:not(.tdBtn):hover span, #valueList tr td:not(.tdBtn):hover span {
@@ -167,7 +167,7 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
     transition-property: all;
     background: #eaeffd;
     color: #335eea;
-    box-shadow: 0 0 0 3px rgba(255,255,255,0.6);
+    box-shadow: 15px 15px 15px rgba(0, 0, 0, 0.1);
 }
 
 #result tr td{
@@ -1271,7 +1271,7 @@ var currentIndex = -1; //播放列表当前播放曲数
     localStorage.setItem("setting", JSON.stringify(setting));
 
     currentIndex = setting.play.currentIndex;
-    if ($.parseJSON(localStorage.getItem("setting")).play.time) { //继承“创业未半”（上次播放进度）
+    if ($.parseJSON(localStorage.getItem("setting")).play.hasOwnProperty('time')) { //继承“创业未半”（上次播放进度）
         audio.currentTime = setting.play.time;
         playerMusicThings(setting.play.id, setting.play.name, true);
     }
@@ -1431,7 +1431,24 @@ volume();
 
     var audioVolume = audio.volume;
     var VolumeIsChange = false;
+
     $('.imghoverBtnImg').click(function() {  
+        if(audio.error) {
+            if (localStorage.getItem("setting") && JSON.parse(localStorage.getItem("setting")).play.id) {
+	        // 发送GET请求
+	        $.get('https://kwapi-api-iobiovqpvk.cn-beijing.fcapp.run/wyy/mp3?rid=' + $.parseJSON(localStorage.getItem("setting")).play.id, function(data) {
+		    // 获取歌曲的URL
+		    var songUrl = data;
+		    if (songUrl !== null) {
+	                audio.src = songUrl;
+                        audio.currentTime = JSON.parse(localStorage.getItem("setting")).play.time;
+                        audio.load();
+                        audio.play();
+                    }
+	        });
+            }
+        }
+
         if (audiodisplay == 0 && JSON.parse(localStorage.getItem("setting")).showaudio == "no" || !localStorage.getItem("setting")) {
             context = new AudioContext;
 	    source = context.createMediaElementSource(audio);
@@ -1442,7 +1459,6 @@ volume();
             audiodisplay = audiodisplay + 1;
             audioDisplay(); // 音频可视化
         }
-        if(audio.onerror){} else {  
             if (audio.paused) {  
                 $('#imghoverBtn').html('<svg width="25" fill="rgba(255,255,255,0.8)" viewBox="0 0 16 16"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"/></svg>');  
                 dp.pause();  
@@ -1451,7 +1467,7 @@ volume();
                 $('.img01').css('animation-play-state', 'running');  
                 $('.img02').css('animation-play-state', 'running');  
                 $('.underline').css('animation-play-state', 'running');
-                audio.play();
+                    audio.play();
                 function avolume(i) {
                   setTimeout(function(){
                       if (audio.volume < 1) {
@@ -1492,7 +1508,6 @@ volume();
                     VolumeIsChange = false;
                 }, (forVolume - 1) * 6);
             }  
-        }  
     });  
 
 			                        $("#loop-btn").click(function() { // 单曲循环按钮点击事件
@@ -1559,7 +1574,7 @@ function music(songUrl, pause = false) { // 播放音乐函数
                                                         var percent = audio.currentTime/audio.duration;
                                                         $('.progress-bar').css('background-image', 'linear-gradient(to right, #3b82f6 ' + percent*100 + '%, #FFF 0)');
                                                         var setting = $.parseJSON(localStorage.getItem("setting"));
-                                                        setting.play.time = audio.currentTime;
+                                                        if(!audio.error) {setting.play.time = audio.currentTime;}
                                                         localStorage.setItem("setting", JSON.stringify(setting));
 			                            });
 			
@@ -1954,12 +1969,14 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                document.title = name + '🎵';
 			
 			                // 拼接请求的URL
-			                var url = "https://moeyy.cn/music/api/song/url?id=" + id + '&br=320000&realIP=211.161.244.70';
+                                        var url = 'https://kwapi-api-iobiovqpvk.cn-beijing.fcapp.run/wyy/mp3?rid=' + id;
+			                //var url = "https://moeyy.cn/music/api/song/url?id=" + id + '&br=320000&realIP=211.161.244.70';
 			
 			                // 发送GET请求
 			                $.get(url, function(data) {
 			                    // 获取歌曲的URL
-			                    var songUrl = data.data[0].url;
+			                    var songUrl = data;
+			                    //var songUrl = data.data[0].url;
 			                    if (songUrl !== null) {
                                                 topTip('<svg fill="#3b82f6" viewBox="0 0 16 16"><path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z"/><path fill-rule="evenodd" d="M9 3v10H8V3h1z"/><path d="M8 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 13 2.22V4L8 5V2.82z"/></svg>开始播放' + name + '~');
 			                        music(songUrl, pause);
@@ -2401,9 +2418,11 @@ $(document).on("click", "#searchMore", function (){
 			        if (Object.keys(data).length === 1 && data.hasOwnProperty('code')) {
 			          // 请求失败
 			          topTip('<svg viewBox="0 0 16 16"><path fill="red" d="M4.355.522a.5.5 0 0 1 .623.333l.291.956A4.979 4.979 0 0 1 8 1c1.007 0 1.946.298 2.731.811l.29-.956a.5.5 0 1 1 .957.29l-.41 1.352A4.985 4.985 0 0 1 13 6h.5a.5.5 0 0 0 .5-.5V5a.5.5 0 0 1 1 0v.5A1.5 1.5 0 0 1 13.5 7H13v1h1.5a.5.5 0 0 1 0 1H13v1h.5a1.5 1.5 0 0 1 1.5 1.5v.5a.5.5 0 1 1-1 0v-.5a.5.5 0 0 0-.5-.5H13a5 5 0 0 1-10 0h-.5a.5.5 0 0 0-.5.5v.5a.5.5 0 1 1-1 0v-.5A1.5 1.5 0 0 1 2.5 10H3V9H1.5a.5.5 0 0 1 0-1H3V7h-.5A1.5 1.5 0 0 1 1 5.5V5a.5.5 0 0 1 1 0v.5a.5.5 0 0 0 .5.5H3c0-1.364.547-2.601 1.432-3.503l-.41-1.352a.5.5 0 0 1 .333-.623zM4 7v4a4 4 0 0 0 3.5 3.97V7H4zm4.5 0v7.97A4 4 0 0 0 12 11V7H8.5zM12 6a3.989 3.989 0 0 0-1.334-2.982A3.983 3.983 0 0 0 8 2a3.983 3.983 0 0 0-2.667 1.018A3.989 3.989 0 0 0 4 6h8z"/></svg>搜索失败.稍等片刻');
+                                  $('.circle').parent().parent().parent().remove();
 			        }
                                 else if(data.result.songCount == 0){
 			          topTip('<svg viewBox="0 0 16 16"><path fill="#3b82f6" d="M4.355.522a.5.5 0 0 1 .623.333l.291.956A4.979 4.979 0 0 1 8 1c1.007 0 1.946.298 2.731.811l.29-.956a.5.5 0 1 1 .957.29l-.41 1.352A4.985 4.985 0 0 1 13 6h.5a.5.5 0 0 0 .5-.5V5a.5.5 0 0 1 1 0v.5A1.5 1.5 0 0 1 13.5 7H13v1h1.5a.5.5 0 0 1 0 1H13v1h.5a1.5 1.5 0 0 1 1.5 1.5v.5a.5.5 0 1 1-1 0v-.5a.5.5 0 0 0-.5-.5H13a5 5 0 0 1-10 0h-.5a.5.5 0 0 0-.5.5v.5a.5.5 0 1 1-1 0v-.5A1.5 1.5 0 0 1 2.5 10H3V9H1.5a.5.5 0 0 1 0-1H3V7h-.5A1.5 1.5 0 0 1 1 5.5V5a.5.5 0 0 1 1 0v.5a.5.5 0 0 0 .5.5H3c0-1.364.547-2.601 1.432-3.503l-.41-1.352a.5.5 0 0 1 .333-.623zM4 7v4a4 4 0 0 0 3.5 3.97V7H4zm4.5 0v7.97A4 4 0 0 0 12 11V7H8.5zM12 6a3.989 3.989 0 0 0-1.334-2.982A3.983 3.983 0 0 0 8 2a3.983 3.983 0 0 0-2.667 1.018A3.989 3.989 0 0 0 4 6h8z"/></svg>已经到底了哦！');
+                                  $('.circle').parent().parent().parent().remove();
                                   $('#searchMore').parent().parent().remove();
 			        } else {
 
@@ -2784,6 +2803,15 @@ $('#setswitch_showaudio').click(function() {
     if (json.showaudio == "yes"){
         json.showaudio = "no";
         if ($('#audio-player').height() > 50) {
+                                                    if (audiodisplay == 0) {
+                                                        context = new AudioContext;
+			                                source = context.createMediaElementSource(audio);
+   		                                        analyser = context.createAnalyser();
+   		                                        //连接：source → analyser → destination
+   		                                        source.connect(analyser);
+   		                                        analyser.connect(context.destination);
+                                                        audiodisplay = audiodisplay + 1;
+                                                    }
             $('#wrap').fadeIn();
             audioDisplay();
         }
