@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 	<head>
                 <meta name="keywords" content="音乐mv, 网易云音乐api, 网易云音乐, 在线音乐, 音乐播放器, 音乐, HTML, CSS, JavaScript">
-                <meta name="description" content="Moren在线音乐播放器 支持音乐mv播放 音乐搜索播放 音乐歌词评论歌词显示"/>
+                <meta name="description" content="Moren在线音乐播放器 支持音乐mv播放 音乐搜索播放 音乐歌词评论歌词显示">
                 <meta name="author" content="More_n">
 		<meta http-equiv="Content-Type" content="text/html"; charset="UTF-8">
 		<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
@@ -678,11 +678,13 @@ div#driver-popover-item .driver-popover-footer button {
     top: 60px;
     left: 5%;
     min-height: 10px;
+    max-height: 50%;
     border-radius: 20px;
     background-color: rgba(255,255,255,0.5);
     backdrop-filter: blur(5px);
     z-index: 99999;
     transition: 0.5s;
+    overflow: auto;
 }
 
 #tip td {
@@ -1220,6 +1222,14 @@ div#driver-popover-item .driver-popover-footer button {
  }
 }
 
+/*一根毛*/
+.img_mao {
+    position: absolute;
+    z-index: 999999;
+    box-shadow: none;
+    pointer-events: none;
+}
+
  @media screen and (max-width: 1355px){
           #result{
             max-width:90%;
@@ -1387,9 +1397,15 @@ div#driver-popover-item .driver-popover-footer button {
 				<path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm15 0a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z" />
 			</svg>
 		</button>
+                <svg class="img_mao" title="这是一根毛" width="100" height="100" viewBox="0 0 26.458 26.458" xmlns="http://www.w3.org/2000/svg"><path d="m22.994 2.6145s-1.099 22.279-14.13 18.316c0 0-4.6635-1.7748-5.5854-3.9259" style="fill:none;paint-order:markers stroke fill;stroke-linecap:square;stroke-width:.1;stroke:#000"/></svg>
 		<script>
 var audio = $('#audio-player')[0];
 var currentIndex = -1; //播放列表当前播放曲数
+
+    document.addEventListener( "plusready", onPlusReady, false );
+    function onPlusReady() {
+        plus.navigator.closeSplashscreen()
+    }
 
 (function() { //localStorage setting初始化
     if (!localStorage.getItem("setting")) {
@@ -1551,6 +1567,9 @@ function drawSpectrum() {
 }
 }
 
+// 在页面上显示一根毛
+$('.img_mao').css({'top': Math.random() * 101 + '%', 'left' : Math.random() * 101 + '%', 'transform': 'rotate(' + Math.random() * 361 + 'deg)'});
+
 function volume() {
     var volume = localStorage.getItem("dplayer-volume") * 100;
     if(!localStorage.getItem("dplayer-volume")) {
@@ -1661,8 +1680,6 @@ volume();
 			                            }
                                                     localStorage.setItem("setting", JSON.stringify(setting));
 			                        });
-
-var audioAddEventListenerTimeupdate = 0;
 function music(songUrl, pause = false) { // 播放音乐函数
 			                        audio.src = songUrl;
                                                 audio.load();
@@ -1673,8 +1690,6 @@ function music(songUrl, pause = false) { // 播放音乐函数
 			                        var playPauseBtn = $('.imghoverBtnImg');
 			                        var progressBar = $(".progress-bar");
 			                        var volumeBar = $(".volume-bar");
-			                        var currentTime = $(".current-time");
-			                        var totalTime = $(".total-time");
 			                        // 自动播放音频
 			                        if(audio.load && !pause){
                                                     audio.play();
@@ -1697,37 +1712,13 @@ function music(songUrl, pause = false) { // 播放音乐函数
 			                                audio.currentTime = audio.duration * (value / 100);
  			                                $(this).css('background-image', 'linear-gradient(to right, #3b82f6 ' + value + '%, #FFF 0)');
 			                            });
-			                //    if (audioAddEventListenerTimeupdate = 0) {
-			                        audio.addEventListener("timeupdate",
-			                            function() {
-			                                var currentTimeVal = formatTime(audio.currentTime);
-			                                var durationVal = formatTime(audio.duration);
-			                                var progress = (audio.currentTime / audio.duration) * 100;
-			                                progressBar.val(progress);
-			                                currentTime.text(currentTimeVal);
-			                                totalTime.text(durationVal);
-                                                        var percent = audio.currentTime/audio.duration;
-                                                        $('.progress-bar').css('background-image', 'linear-gradient(to right, #3b82f6 ' + percent*100 + '%, #FFF 0)');
-                                                        var setting = $.parseJSON(localStorage.getItem("setting"));
-                                                        if(!audio.error) {setting.play.time = audio.currentTime;}
-                                                        localStorage.setItem("setting", JSON.stringify(setting));
-			                            });
-			                        audioAddEventListenerTimeupdate = 1;
-			                  //  }
+
 			                        audio.addEventListener("ended",
 			                            function() {
 			                                audio.currentTime = 0;
 			                                $('#imghoverBtn').html('<svg width="25" fill="rgba(255,255,255,0.8)" viewBox="0 0 16 16"><path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/></svg>');
 			                            });
 			
-			                        function formatTime(time) {
-			                            var minutes = Math.floor(time / 60);
-			                            var seconds = Math.floor(time % 60);
-			                            if (seconds < 10) {
-			                                seconds = "0" + seconds;
-			                            }
-			                            return minutes + ":" + seconds;
-			                        }
 			
 			                        var timer;
 			                        volumeBar.on("input", function() {
@@ -1788,7 +1779,7 @@ function music(songUrl, pause = false) { // 播放音乐函数
 			      if (input.val() !== '') {
 			      $('#tip').html('');
                               $('#tip').fadeIn();
-			      var url = 'https://moeyy.cn/music/api/search/suggest?keywords=' + input.val() + '&br=320000&realIP=211.161.244.70';
+			      var url = 'https://moeyy.cn/music/api/search/suggest?keywords=' + input.val() + '&br=320000&realIP=211.161.244.70&t=' + new Date().getTime();
 			      $.ajax({
 			        url: url,
 			        method: 'GET',
@@ -1841,7 +1832,7 @@ function music(songUrl, pause = false) { // 播放音乐函数
                             $('#tip').fadeOut();
 			
 			    // 拼接请求的URL
-			    var url = "https://moeyy.cn/music/api/search?keywords=" + searchSongName + "&limit=" + songnumber + '&br=320000&realIP=211.161.244.70';
+			    var url = "https://moeyy.cn/music/api/search?keywords=" + searchSongName + "&limit=" + songnumber + '&br=320000&realIP=211.161.244.70&t=' + new Date().getTime();
 			
 			
 			    topTip('<svg viewBox="0 0 16 16" style="fill:#3b82f6;"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"</path></svg>正在搜索音乐' + searchSongName + '...');
@@ -1923,7 +1914,7 @@ function music(songUrl, pause = false) { // 播放音乐函数
 
                                 //获取歌曲详细信息
                     			$.ajax({
-			            url: "https://moeyy.cn/music/api/song/detail?ids=" + idArray.toString() + '&realIP=211.161.244.70',
+			            url: "https://moeyy.cn/music/api/song/detail?ids=" + idArray.toString() + '&realIP=211.161.244.70&t=' + new Date().getTime(),
 			            method: 'GET',
 			            success: function(data) {
                                         for (var i = 0; i < data.songs.length; i++) {
@@ -2105,6 +2096,12 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			
 			                $("#songsnamesp").text(name);
 			                document.title = name + '🎵';
+
+   			                    if(typeof plus && typeof plus != 'undefined'){setTimeout(function(){
+                                                plus.push.clear();
+   			                        plus.push.setAutoNotification( true );
+                                                setTimeout(function(){plus.push.createMessage( name + '🎵', "String" );}, 500);
+                                            }, 5000);}
 			
 			                // 拼接请求的URL
                                         var url = 'https://kwapi-api-iobiovqpvk.cn-beijing.fcapp.run/wyy/mp3?rid=' + id;
@@ -2125,7 +2122,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 		
 			
 			                // 拼接请求的URL
-			                var url = "https://moeyy.cn/music/api/song/detail?ids=" + id + '&br=320000&realIP=211.161.244.70';
+			                var url = "https://moeyy.cn/music/api/song/detail?ids=" + id + '&br=320000&realIP=211.161.244.70&t=' + new Date().getTime();
 			                // 发送GET请求
 			                $.get(url, function(data) {
                                             $('.img01, .img02').css('opacity', '0');
@@ -2151,7 +2148,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                });
 			
 			                // 拼接请求的URL
-			                var url = "https://moeyy.cn/music/api/lyric?id=" + id + '&br=320000&realIP=211.161.244.70';
+			                var url = "https://moeyy.cn/music/api/lyric?id=" + id + '&br=320000&realIP=211.161.244.70&t=' + new Date().getTime();
 			
 			                // 发送GET请求
 			                $.get(url, function(data) {
@@ -2183,7 +2180,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                        }
 			
 			                        // 获取当前行的歌词内容
-			                        var content = line.replace(/\[\d+:\d+\.\d+\]/, "");
+			                        var content = line.replace(/\[\d+:\d+(:|.)\d+\]/, "");
 
 			                        // 创建一个span，用于显示当前行的歌词，并添加时间戳属性
                                                 var span;
@@ -2238,8 +2235,27 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			
 			                // 定义一个变量，用于记录当前突出的歌词行索引
 			                var currentIndex = -1;
-			
+					function formatTime(time) {
+			                            var minutes = Math.floor(time / 60);
+			                            var seconds = Math.floor(time % 60);
+			                            if (seconds < 10) {
+			                                seconds = "0" + seconds;
+			                            }
+			                            return minutes + ":" + seconds;
+			                }
 			                audio.addEventListener("timeupdate", function() {
+			                                var currentTimeVal = formatTime(audio.currentTime);
+			                                var durationVal = formatTime(audio.duration);
+			                                var progress = (audio.currentTime / audio.duration) * 100;
+			                                $(".progress-bar").val(progress);
+			                                $(".current-time").text(currentTimeVal);
+			                                $(".total-time").text(durationVal);
+                                                        var percent = audio.currentTime/audio.duration;
+                                                        $('.progress-bar').css('background-image', 'linear-gradient(to right, #3b82f6 ' + percent*100 + '%, #FFF 0)');
+                                                        var setting = $.parseJSON(localStorage.getItem("setting"));
+                                                        if(!audio.error) {setting.play.time = audio.currentTime;}
+                                                        localStorage.setItem("setting", JSON.stringify(setting));
+
 			                    // 获取当前播放时间
 			                    var currentTime = audio.currentTime;
 			                    // 获取所有歌词行
@@ -2288,7 +2304,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                                if (lines.eq(index).length > 0) {
   			                                  top = lines.eq(index).position().top;
   			                                  middle = $("#lyric").height() / 2;
-   			                                  scrollTop = top - middle + $("#lyric").scrollTop();
+   			                                  scrollTop = top - middle + $("#lyric").scrollTop() + (lines.eq(index).height()/2);
    			                                 $("#lyric").animate({
    			                                     scrollTop: scrollTop
   			                                  }, 200);
@@ -2308,7 +2324,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
                              });
 
 			                // 拼接请求的URL
-			                var url = "https://moeyy.cn/music/api/comment/music?id=" + id + '&br=320000&realIP=211.161.244.70';
+			                var url = "https://moeyy.cn/music/api/comment/music?id=" + id + '&br=320000&realIP=211.161.244.70&t=' + new Date().getTime();
 			
 			                // 发送GET请求
 			                $.get(url, function(data) {
@@ -2422,7 +2438,7 @@ localStorage.setItem("setting", JSON.stringify(setting));
 			    var btnValue = $(this).val(); // 获取当前按下按钮的value值
 			    var songName = $(this).title;
 			    // 拼接请求的URL
-			    var url = "https://moeyy.cn/music/api/mv/url?id=" + btnValue + '&br=320000&realIP=211.161.244.70';
+			    var url = "https://moeyy.cn/music/api/mv/url?id=" + btnValue + '&br=320000&realIP=211.161.244.70&t=' + new Date().getTime();
 			
 			    // 发送GET请求
 			    $.get(url, function(data) {			
@@ -2533,7 +2549,7 @@ $(document).on('dblclick', '#result tr, #valueList tr', function () {
 			    }
                             //获取歌曲详细信息
                                                         $.ajax({
-			        url: "https://moeyy.cn/music/api/song/detail?ids=" + idArray.toString() + '&realIP=211.161.244.70',
+			        url: "https://moeyy.cn/music/api/song/detail?ids=" + idArray.toString() + '&realIP=211.161.244.70&t=' + new Date().getTime(),
 			        method: 'GET',
 			        success: function(data) {
                                     for (var i = 0; i < data.songs.length; i++) {
@@ -2564,7 +2580,7 @@ $(document).on("click", "#searchMore", function (){
                         }
                         $('#searchMore').parent().html('<svg viewBox="25 25 50 50" style="width: 2em;transform-origin: center;animation: rotate4 1.5s linear infinite;"><circle class="circle" r="20" cy="50" cx="50"></circle></svg>');
 			// 拼接请求的URL
-			var url = "https://moeyy.cn/music/api/search?keywords=" + searchSongName + "&offset=" + searchOffset + "&br=320000&realIP=211.161.244.70";
+			var url = "https://moeyy.cn/music/api/search?keywords=" + searchSongName + "&offset=" + searchOffset + "&br=320000&realIP=211.161.244.70&t=" + new Date().getTime();
 
 			// 发送GET请求
 			$.ajax({
@@ -2639,7 +2655,7 @@ $(document).on("click", "#searchMore", function (){
 			           }
                                    //获取歌曲详细信息
                     			   $.ajax({
-			               url: "https://moeyy.cn/music/api/song/detail?ids=" + idArray.toString() + '&realIP=211.161.244.70',
+			               url: "https://moeyy.cn/music/api/song/detail?ids=" + idArray.toString() + '&realIP=211.161.244.70&t=' + new Date().getTime(),
 			               method: 'GET',
 			               success: function(data) {
                                            for (var i = 0; i < data.songs.length; i++) {
@@ -2693,7 +2709,7 @@ $(document).on("click", "#outputJson", function (){
 
 $(document).on("click", "#inputJson", function (event) {  
     $('#fileButton').remove();
-    $('body').append('<input type="file" id="fileButton" style="display:none" accept=".json">');
+    $('body').append('<input type="file" id="fileButton" style="display:none" accept=".json, .txt">');
     var fileInput = $('#fileButton')[0];  
     $('#fileButton').click(); // 触发文件选择对话框  
   
@@ -2702,7 +2718,7 @@ $(document).on("click", "#inputJson", function (event) {
         var selectedFile = fileInput.files[0];  
         if (selectedFile) {    
             var fileExtension = selectedFile.name.split('.').pop().toLowerCase();   
-            if (fileExtension === 'json') {      
+            if (fileExtension == 'json' || fileExtension == 'txt') {      
               var reader = new FileReader();  
               var songsList;
               reader.onload = function(e) {  
@@ -3006,8 +3022,8 @@ $('.bghover, #wrap').click(
             ui_2();
         } else {
             $('#playerTab').css({'left':'','right': '','padding':'0'});
-            $('.imghoverBtnImg').css({'width':'80px','height':'80px','background-size':'100%','left':'0px'});
-            $('.imghoverBtnImg button').css({'width': '30px','height':'30px', 'top':'45px','left':'45px'});
+            $('.imghoverBtnImg').css({'width':'','height':'','background-size':'100%','left':'0px'});
+            $('.imghoverBtnImg button').css({'width': '','height':'', 'top':'','left':''});
             $('#lyric').css({'width':'','max-height':'','top':'','left':'','box-shadow':'','background-color':'','font-family':'','font-size':'','font-weight':'','color':'','max-width':'','margin-left': '','padding-right':''});
             $('.bghover, #wrap').css({'z-index': '1'});
             $('.imgbg').css('z-index','');
