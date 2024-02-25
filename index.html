@@ -157,7 +157,7 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
     justify-content: flex-end;
 }
 
-#result tr:hover, #lyric span.active, #valueList tr:hover, .hover {
+#result tr:hover, #lyric span.active, .hover, #valueList tr:hover {
     transition-behavior: normal;
     transition-duration: 0.2s;
     transition-timing-function: ease;
@@ -221,6 +221,20 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
             width: 25%;
             margin: 5px;
         }
+
+.shadow-container::after {  
+  content: "";  
+  position: absolute;  
+  width: 100%;
+  height: var(--shadow-height);
+  bottom: 0; 
+  left: 0;
+  z-index: 1;  
+  border-radius: 10px;  
+  transition: transform 0.2s ease; /* 平滑阴影移动 */  
+  transform: translate(0, var(--shadow-y));  
+  background: #eaeffd;
+}  
 
 .valueListJson_Btn {
   font-size: 15px;
@@ -288,17 +302,38 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
             background-color:rgba(255,255,255,0.5);
         }
 
+        #comments .commentList > div {
+            margin-bottom: 20px;
+        }
+
         #comments span {
             display: block;
             max-width: 100%;
             display:block;
             margin: 10px;
         }
+
         #comments img {
             display: block;
-            height: 50px;
+            height: 30px;
+            width: 30px;
             border-radius: 50%;
-            margin: 10px;
+            margin-left: 10px;
+            float: left;
+        }
+
+        #comments .commentUserName {
+            margin-left: 50px;
+        }
+
+        #comments .commentContent {
+            margin: 5px;
+        }
+
+        #comments .whereWhen {
+            color: #777777;
+            font-size: 80%;
+            margin: 0;
         }
 
         #lyric {
@@ -337,6 +372,10 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
             transition-delay: 0.1s;
         }
 
+        #lyric span:not(.active) {
+            text-shadow: 0 0 2px black;
+        }
+
         #lyric span:not(.active):hover {
             background: hsla(0,0%,100%,0.2);
         }
@@ -349,7 +388,42 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
        }
 
        .active .lyric_Chinese {
-           opacity: .85;
+           opacity: .65;
+       }
+
+       #lyric span.lyric_Wait {
+         height: 0;
+         padding: 0;
+       }
+
+       #lyric span.active.lyric_Wait {
+         height: fit-content;
+         padding: 10px;
+       }
+
+       #lyric span.active.lyric_Wait div {
+         -webkit-background-clip: text;
+         background-clip: text;
+         color: transparent;
+         opacity: 0.8;
+         width: 120px;
+         background-position: 100% 0%;
+         background-image: linear-gradient(to right, #335eea, #335eea 50%, white 50%, white);
+         background-size: 200% 100%;
+         white-space: nowrap;
+       }
+
+       #lyric span.active.lyric_Wait div::before {
+         content: '● ● ● ● ● ● ';
+       }
+
+       @keyframes lyric_Wait_animate {
+         0% {
+           background-position: 100% 0%;
+         }
+         100% {
+           background-position: 0% 0%;
+         }
        }
 
 .buttonTab {
@@ -583,44 +657,29 @@ div,table {
  }
 
 .volume-percentage {
-  position: fixed;
-  top: 20;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #fff;
-  color: black;
-  z-index: 9999;
-  border-radius: 13px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  font-size: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3px;
+    position: fixed;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #fff;
+    color: black;
+    z-index: 9999;
+    border-radius: 10px;
+    box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.3);
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    transition: all 0.4s cubic-bezier(0.5, 0, 0.5, 1.76);
+    word-break:break-all;
 }
 
 .volume-percentage svg {
-  height: 20px;
-  width: 20px;
-}
-
-.addstyle {
-  border: none;
-  outline: none;
-  width: 100%;
-  height: 100px;
-  padding: 0.6em;
-  padding-left: 0.9em;
-  border-radius: 20px;
-  background: #fff;
-  transition: 300ms;
-  font-family: 'Lato';
-  font-size: 16px;
-}
-
-.addstyle:hover,.addstyle:focus {
-  background: rgb(0, 0, 0);
-  color: #fff;
+    height: 20px !important;
+    min-width: 20px !important;
+    fill: rgb(59, 130, 246);
+    margin-right: 5px;
 }
 
 #closeTab {
@@ -940,10 +999,10 @@ div#driver-popover-item .driver-popover-footer button {
 }
 
 .underline {
-    height: 5px;
+    height: 0.2em;
     width: 0;
     display: block;
-    border-radius: 2.5px;
+    border-radius: 5px;
     background-color: #6288f1;
     margin-top: 10px;
 }
@@ -1295,6 +1354,7 @@ div#driver-popover-item .driver-popover-footer button {
 		<p class="volume-percentage"></p>
 		<div class="background"></div>
 		<div class="bghover"></div>
+                <div id="circle" style="pointer-events: none;position: absolute; z-index: 99999; background-color: rgba(255, 255, 255, 0.5); border-radius: 50%; transition: all 0.5s linear 0s; left: -50px; top: -50px; width: 0px; height: 0px;"></div>
                    <div class="img01 imgbg"></div>
                    <div class="img02 imgbg"></div>
 
@@ -1382,7 +1442,7 @@ div#driver-popover-item .driver-popover-footer button {
  		   </div>
  		 </div>
 		</label>
-		<table id="valueList"></table><input type="file" id="fileButton" style="display:none" accept=".json">
+		<table id="valueList" class="shadow-container"></table><input type="file" id="fileButton" style="display:none" accept=".json">
 		<div class="buttonTab">
 			<button id="closeTab">
 				<svg width="25" fill="#3b82f6" viewBox="0 0 16 16" style="position: absolute;top: 5px;right: 5px;">
@@ -1434,20 +1494,22 @@ var currentIndex = -1; //播放列表当前播放曲数
     localStorage.setItem("setting", JSON.stringify(setting));
 })()
   if (localStorage.getItem('darkmode') == 'true') {
-    $('img, #hidescreen, #fullscreen, .background, .imgbg, .buttonTab, .theme-switch, html, .commentList img, .imghoverBtnImg').addClass('dark-mode');
+    $('html, img, #hidescreen, #fullscreen, .background, .imgbg, .buttonTab, .theme-switch, .commentList img, .imghoverBtnImg').addClass('dark-mode');
     $('.theme-switch__container').click();
   }
 
 $(document).on("click", ".theme-switch__container",function(){
+  $('#circle').css({'width': '100px','height': '100px','transform': 'scale(40)', 'opacity': '1'});
+  setTimeout(function(){$('#circle').css({'transform': 'scale(1)'});setTimeout(function(){$('#circle').css({'opacity': '0'});},300);}, 800);
   if ($('html').is('.dark-mode')) {
-    $('img, #hidescreen, #fullscreen, .background, .imgbg, .buttonTab, .theme-switch, html, .commentList img, .imghoverBtnImg').removeClass('dark-mode');
+    $('html, img, #hidescreen, #fullscreen, .background, .imgbg, .buttonTab, .theme-switch, .commentList img, .imghoverBtnImg').removeClass('dark-mode');
     localStorage.setItem("darkmode", 'flase');
   } else {
-    $('img, #hidescreen, #fullscreen, .background, .imgbg, .buttonTab, .theme-switch, html, .commentList img, .imghoverBtnImg').addClass('dark-mode');
+    $('html, img, #hidescreen, #fullscreen, .background, .imgbg, .buttonTab, .theme-switch, .commentList img, .imghoverBtnImg').addClass('dark-mode');
     localStorage.setItem("darkmode", 'true');
   }});
 
-                        topTip('<svg fill="#0d6efd" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h6zM5 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H5z"/><path d="M8 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></svg>' + navigator.userAgent);
+                        topTip('<svg fill="#0d6efd" style="width:1.5em;height:1.5em;" viewBox="0 0 16 16"><path d="M11 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h6zM5 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H5z"/><path d="M8 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></svg>' + navigator.userAgent);
 
 var audiodisplay = 0;
 var animationFrameId;
@@ -1620,6 +1682,9 @@ volume();
                 $('.img01').css('animation-play-state', 'running');  
                 $('.img02').css('animation-play-state', 'running');  
                 $('.underline').css('animation-play-state', 'running');
+                if ($('.active').text() == '') {
+                    $('.active div').css('animation-play-state', 'running');
+                }
                     audio.play();
                 function avolume(i) {
                   setTimeout(function(){
@@ -1642,6 +1707,9 @@ volume();
                 $('.img01').css('animation-play-state', 'paused');  
                 $('.img02').css('animation-play-state', 'paused');  
                 $('.underline').css('animation-play-state', 'paused');
+                if ($('.active').text() == '') {
+                    $('.active div').css('animation-play-state', 'paused');
+                }
                 function rvolume(i) {
                     setTimeout(function(){
                         VolumeIsChange = true;
@@ -1717,6 +1785,8 @@ function music(songUrl, pause = false) { // 播放音乐函数
 			                            function() {
 			                                audio.currentTime = 0;
 			                                $('#imghoverBtn').html('<svg width="25" fill="rgba(255,255,255,0.8)" viewBox="0 0 16 16"><path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/></svg>');
+              	                                  $('.img01').css('animation-play-state', 'paused');  
+              	                                  $('.img02').css('animation-play-state', 'paused');  
 			                            });
 			
 			
@@ -2184,12 +2254,10 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 
 			                        // 创建一个span，用于显示当前行的歌词，并添加时间戳属性
                                                 var span;
-                                                if (content) {
-			                            span = $("<span></span>").html(content + '<br/>').attr("data-timestamp", timestamp);
-                                                } else if (data.tlyric && data.tlyric.lyric) {
+                                                if (content !== '' || data.tlyric && data.tlyric.lyric) {
 			                            span = $("<span></span>").html(content + '<br/>').attr("data-timestamp", timestamp);
                                                 } else {
-			                            span = $("<span style='height:0;padding:0;'></span>").html('<br/>').attr("data-timestamp", timestamp);
+			                            span = $("<span class='lyric_Wait'><div></div></span>").attr("data-timestamp", timestamp);
                                                 }
 
 			                        // 将span添加到div中
@@ -2210,6 +2278,10 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                        var lines2 = lrc2.split("\n");
                                                 for (var j = 0; j < $('#lyric span').length; j++) {
                                                     var spantimestamp = $($('#lyric span')[j]).attr('data-timestamp');//获取歌词span时间戳
+                                                    if ($('#lyric span:eq('+j+')').text() == '') {
+                                                        $('#lyric span:eq('+j+')').addClass('lyric_Wait');
+                                                        $('#lyric span:eq('+j+')').html('<div></div>');
+                                                    }
                                                     for (var s = 0; s < lines2.length; s++) {
                                                         var line2 = lines2[s];
 			                                var content2;
@@ -2221,11 +2293,8 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
                                                         if (timestamp2) {
 			                                    timestamp2 = Number(timestamp2[1]) * 60 + Number(timestamp2[2]);
                                                         }
-                                                        if (timestamp2 == spantimestamp){
+                                                        if (timestamp2 == spantimestamp && content2 !== ''){
                                                             $('#lyric span:eq('+j+')').html($('#lyric span:eq('+j+')').html() + '<div class="lyric_Chinese">'+content2+'</div>');
-                                                            if ($('#lyric span:eq('+j+')').text() == '') {
-                                                                $('#lyric span:eq('+j+')').css({'height':'0','padding':'0'});
-                                                            }
                                                             break;
                                                         }
                                                     }
@@ -2243,7 +2312,8 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                            }
 			                            return minutes + ":" + seconds;
 			                }
-			                audio.addEventListener("timeupdate", function() {
+			                audio.addEventListener("timeupdate", function(event) {
+                                                        event.stopImmediatePropagation();  
 			                                var currentTimeVal = formatTime(audio.currentTime);
 			                                var durationVal = formatTime(audio.duration);
 			                                var progress = (audio.currentTime / audio.duration) * 100;
@@ -2281,18 +2351,24 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                                // 将记录的索引对应的歌词行取消突出样式
 			                                $('.underline').remove();
 			                                lines.eq(currentIndex).removeClass("active");
-			
+
 			                                // 将当前歌词行添加突出样式
-                                                        if (lines.eq(index).text() == '') {
-                                                            lines.eq(index).height(35);
-                                                            lines.eq(index).css('padding','');
-                                                            lines.eq(index).text('......');
-                                                        }
 			                                lines.eq(index).addClass("active");
 			                                lines.eq(index).append('<i class="underline"></i>');
                                                         var animateTime = lines.eq(i).attr("data-timestamp") - lines.eq(index).attr("data-timestamp");
-                                                        $('.underline').css('animation', 'underline_ToEnd ' + animateTime + 's ease forwards')
-			
+
+			                                if (lines.eq(index).text() == '') {
+                                                            $("#lyric span:eq(" + index + ") div").css('animation', 'lyric_Wait_animate ' + animateTime + 's linear forwards');
+                                                        }
+
+                                                        $('.underline').css('animation', 'underline_ToEnd ' + animateTime + 's ease forwards');
+                                                        if (audio.paused) {
+                                                            $('.underline, #lyric span:eq(' + index + ') div').css('animation-play-state', 'paused');
+                                                        }
+			                                
+                                                        if (animateTime < 0.2) {
+                                                            animateTime = animateTime / 0.8;
+                                                        }
 			                                // 更新记录的索引
 			                                currentIndex = index;
 
@@ -2307,7 +2383,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
    			                                  scrollTop = top - middle + $("#lyric").scrollTop() + (lines.eq(index).height()/2);
    			                                 $("#lyric").animate({
    			                                     scrollTop: scrollTop
-  			                                  }, 200);
+  			                                  }, animateTime * 100);
 			                                }
 			                            }
 			
@@ -2323,37 +2399,25 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
                                    $("this tdBtn #playerMusicBtn").trigger("click");
                              });
 
-			                // 拼接请求的URL
 			                var url = "https://moeyy.cn/music/api/comment/music?id=" + id + '&br=320000&realIP=211.161.244.70&t=' + new Date().getTime();
-			
-			                // 发送GET请求
+			                // GET请求
 			                $.get(url, function(data) {
-			                    // 获取评论列表
 			                    var comments = data.comments;
-			
-			                    // 创建一个div，用于显示评论
 			                    var div = $("<div class='commentList'></div>");
-			
 			                    // 遍历每条评论
 			                    for (var i = 0; i < comments.length; i++) {
 			                        // 获取评论者的头像和评论内容
-			                        var avatarUrl = comments[i].user.avatarUrl;
+			                        var avatarUrl = comments[i].user.avatarUrl + "?param=40y40";
+                                                var userNickname = comments[i].user.nickname;
 			                        var content = comments[i].content;
-			
-			                        // 创建一个div，用于显示一条评论
 			                        var commentDiv = $("<div></div>");
-			
-			                        // 创建一个img，用于显示评论者的头像
-			                        var img = $("<img>").attr("src", avatarUrl).css("width", "30px").css("height", "30px").attr('loading', 'lazy');
-			
-			                        // 创建一个span，用于显示评论内容
-			                        var span = $("<span></span>").text(content);
-			
-			                        // 将img和span添加到commentDiv中
+			                        var img = $("<img>").attr("src", avatarUrl).attr('loading', 'lazy');
+                                                var userName = $("<span class='commentUserName'>" + userNickname + "<span class='whereWhen'>" + comments[i].ipLocation.location
+ + " " + comments[i].timeStr + "</span></span>")
+			                        var span = $("<span class='commentContent'></span>").text(content);
 			                        commentDiv.append(img);
+                                                commentDiv.append(userName);
 			                        commentDiv.append(span);
-			
-			                        // 将commentDiv添加到div中
 			                        div.append(commentDiv);
 			                    }
 			
@@ -2793,11 +2857,11 @@ $('input[type="range"]').on("input",function() {
 var setTimeout2;
 function topTip(html, time = 1500) {
     clearTimeout(setTimeout2);
-    setTimeout2 = setTimeout(function() {
-        $('.volume-percentage').fadeOut();
-    }, time);
-    $('.volume-percentage').fadeIn();
+    $('.volume-percentage').css('top', '20px');
     $('.volume-percentage').html(html);
+    setTimeout2 = setTimeout(function() {
+        $('.volume-percentage').css('top', '-' + Number($('.volume-percentage')[0].clientHeight + 30) + 'px');
+    }, time);
 }
 
 
