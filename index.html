@@ -298,11 +298,21 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
             right: 41%;
             top: 2%;
             overflow-y: scroll;
-            border-radius:20px;
+            border-radius: 20px 0 0 20px;
             background-color:rgba(255,255,255,0.5);
         }
 
-        #comments .commentList > div {
+        #comments .hotComments::before {
+            font-size: 25px;
+            content: "🔥热评";
+        }
+
+        #comments .commentList::before {
+            font-size: 25px;
+            content: "  评论";
+        }
+
+        #comments .commentList > div, #comments .hotComments > div {
             margin-bottom: 20px;
         }
 
@@ -347,7 +357,7 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
             right: 2%;
             top: 2%;
             overflow-y: scroll;
-            border-radius:20px;
+            border-radius: 0 20px 20px 0;
             cursor: default;
             background-color:rgba(255,255,255,0.5);
             font-size: 22px;
@@ -373,7 +383,7 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
         }
 
         #lyric span:not(.active) {
-            text-shadow: 0 0 2px black;
+            text-shadow: 0 0 10px #000;
         }
 
         #lyric span:not(.active):hover {
@@ -673,6 +683,7 @@ div,table {
     padding: 8px;
     transition: all 0.4s cubic-bezier(0.5, 0, 0.5, 1.76);
     word-break:break-all;
+    border: 1px solid rgba(0, 0, 0, 0.3);
 }
 
 .volume-percentage svg {
@@ -1089,6 +1100,7 @@ div#driver-popover-item .driver-popover-footer button {
     transform: scale(1);
     left: 25px;
     top: 25px;
+    border: 1px solid rgb(255 255 255 / 60%);
 }
 
 @keyframes underline_ToEnd {  
@@ -2399,9 +2411,31 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
                                    $("this tdBtn #playerMusicBtn").trigger("click");
                              });
 
-			                var url = "https://moeyy.cn/music/api/comment/music?id=" + id + '&br=320000&realIP=211.161.244.70&t=' + new Date().getTime();
+			                var url = 'https://moeyy.cn/music/api/comment/music?id=' + id + '&br=320000&realIP=211.161.244.70&t=' + new Date().getTime();
 			                // GET请求
 			                $.get(url, function(data) {
+			                    var hotComments = data.hotComments;
+			                    var hotCommentsdiv = $("<div class='hotComments'></div>");
+			                    // 遍历每条评论
+			                    for (var i = 0; i < hotComments.length; i++) {
+			                        // 获取评论者的头像和评论内容
+			                        var avatarUrl = hotComments[i].user.avatarUrl + "?param=40y40";
+                                                var userNickname = hotComments[i].user.nickname;
+			                        var content = hotComments[i].content;
+			                        var commentDiv = $("<div></div>");
+			                        var img = $("<img>").attr("src", avatarUrl).attr('loading', 'lazy');
+                                                var userName = $("<span class='commentUserName'>" + userNickname + "<span class='whereWhen'>" + hotComments[i].ipLocation.location
+ + " " + hotComments[i].timeStr + "</span></span>")
+			                        var span = $("<span class='commentContent'></span>").text(content);
+			                        commentDiv.append(img);
+                                                commentDiv.append(userName);
+			                        commentDiv.append(span);
+			                        hotCommentsdiv.append(commentDiv);
+			                    }
+					    hotCommentsdiv.append('<br/>');
+			                    // 将div添加到页面上
+			                    $("#comments").append(hotCommentsdiv);
+
 			                    var comments = data.comments;
 			                    var div = $("<div class='commentList'></div>");
 			                    // 遍历每条评论
@@ -2422,7 +2456,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                    }
 			
 			                    // 将div添加到页面上
-			                    $("#comments").html(div);
+			                    $("#comments").append(div);
                                             if (localStorage.getItem('darkmode') == 'true') {
                                               $('.commentList img').addClass('dark-mode');
                                             }
