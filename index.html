@@ -382,10 +382,6 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
             transition-delay: 0.1s;
         }
 
-        #lyric span:not(.active) {
-            text-shadow: 0 0 10px #000;
-        }
-
         #lyric span:not(.active):hover {
             background: hsla(0,0%,100%,0.2);
         }
@@ -520,7 +516,7 @@ body {
   background-color: rgba(255,255,255,0.5);
 }
 
-.bghover{
+.bghover {
   position:fixed;
   top:0;
   left:0;
@@ -528,7 +524,7 @@ body {
   height:100%;
   width:100%;
   background-color: rgba(255,255,255,0.1);
-  backdrop-filter: blur(15px);
+  filter: blur(50px) contrast(125%) brightness(50%);
   transition: 0.3s;
 }
   
@@ -771,7 +767,6 @@ div#driver-popover-item .driver-popover-footer button {
     display: none;
     width: 140vw;
     height: 140vw;
-    filter: blur(100px);
     transform: rotate(0deg);
     transition: all 0.5s;
 }  
@@ -1365,10 +1360,11 @@ div#driver-popover-item .driver-popover-footer button {
 
 		<p class="volume-percentage"></p>
 		<div class="background"></div>
-		<div class="bghover"></div>
-                <div id="circle" style="pointer-events: none;position: absolute; z-index: 99999; background-color: rgba(255, 255, 255, 0.5); border-radius: 50%; transition: all 0.5s linear 0s; left: -50px; top: -50px; width: 0px; height: 0px;"></div>
+		<div class="bghover">
                    <div class="img01 imgbg"></div>
                    <div class="img02 imgbg"></div>
+                </div>
+                <div id="circle" style="pointer-events: none;position: absolute; z-index: 99999; background-color: rgba(255, 255, 255, 0.5); border-radius: 50%; transition: all 0.5s linear 0s; left: -50px; top: -50px; width: 0px; height: 0px;"></div>
 
 <button id="settingBtn"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16">
   <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
@@ -1507,6 +1503,7 @@ var currentIndex = -1; //播放列表当前播放曲数
 })()
   if (localStorage.getItem('darkmode') == 'true') {
     $('html, img, #hidescreen, #fullscreen, .background, .imgbg, .buttonTab, .theme-switch, .commentList img, .imghoverBtnImg').addClass('dark-mode');
+    $('.bghover').css('filter', 'blur(50px) contrast(50%) brightness(150%)');
     $('.theme-switch__container').click();
   }
 
@@ -1515,9 +1512,11 @@ $(document).on("click", ".theme-switch__container",function(){
   setTimeout(function(){$('#circle').css({'transform': 'scale(1)'});setTimeout(function(){$('#circle').css({'opacity': '0'});},300);}, 800);
   if ($('html').is('.dark-mode')) {
     $('html, img, #hidescreen, #fullscreen, .background, .imgbg, .buttonTab, .theme-switch, .commentList img, .imghoverBtnImg').removeClass('dark-mode');
+    $('.bghover').css('filter', 'blur(50px) contrast(125%) brightness(50%)');
     localStorage.setItem("darkmode", 'flase');
   } else {
     $('html, img, #hidescreen, #fullscreen, .background, .imgbg, .buttonTab, .theme-switch, .commentList img, .imghoverBtnImg').addClass('dark-mode');
+    $('.bghover').css('filter', 'blur(50px) contrast(50%) brightness(150%)');
     localStorage.setItem("darkmode", 'true');
   }});
 
@@ -1689,8 +1688,8 @@ volume();
             if (audio.paused) {  
                 $('#imghoverBtn').html('<svg width="25" fill="rgba(255,255,255,0.8)" viewBox="0 0 16 16"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"/></svg>');  
                 dp.pause();  
-                $('.img01').css('animation', 'rotate 150s linear infinite');  
-                $('.img02').css('animation', 'rotate2 150s linear infinite');  
+                $('.img01').css('animation', 'rotate 60s linear infinite');  
+                $('.img02').css('animation', 'rotate2 60s linear infinite');  
                 $('.img01').css('animation-play-state', 'running');  
                 $('.img02').css('animation-play-state', 'running');  
                 $('.underline').css('animation-play-state', 'running');
@@ -2223,8 +2222,8 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                        'backgroundRepeat': 'no-repeat',
 			                        'backgroundSize': 'cover'
 			                    });
-			                    $('.img01').css('animation', 'rotate 150s linear infinite');
-			                    $('.img02').css('animation', 'rotate2 150s linear infinite');
+			                    $('.img01').css('animation', 'rotate 60s linear infinite');
+			                    $('.img02').css('animation', 'rotate2 60s linear infinite');
                                             $('.img01, .img02').css('opacity', '1');
                                            
 			                });
@@ -2434,7 +2433,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                    }
 					    hotCommentsdiv.append('<br/>');
 			                    // 将div添加到页面上
-			                    $("#comments").append(hotCommentsdiv);
+			                    $("#comments").html(hotCommentsdiv);
 
 			                    var comments = data.comments;
 			                    var div = $("<div class='commentList'></div>");
