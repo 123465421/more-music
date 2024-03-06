@@ -516,7 +516,7 @@ body {
   background-color: rgba(255,255,255,0.5);
 }
 
-.bghover {
+.bghover, .otherbtn {
   position:fixed;
   top:0;
   left:0;
@@ -528,6 +528,12 @@ body {
   transition: 0.3s;
 }
   
+.otherbtn {
+  z-index: 0;
+  filter: none;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
 *::-webkit-scrollbar {  
     display: none;
 }
@@ -1177,6 +1183,9 @@ div#driver-popover-item .driver-popover-footer button {
   border-radius: 15px 0 0 15px;
   box-shadow: 5px 5px 30px rgba(0, 0, 0, 0.2);
   transition-duration: 0.3s;
+  overflow: scroll;
+  padding-bottom: 5px;
+  box-sizing: border-box;
 }
 
 .setItem {
@@ -1212,6 +1221,7 @@ div#driver-popover-item .driver-popover-footer button {
   width: 35px;
   height: 20px;
   margin-left: auto;
+  pointer-events: none;
 }
 
 .setswitch input {
@@ -1379,6 +1389,7 @@ div#driver-popover-item .driver-popover-footer button {
                    <div class="img01 imgbg"></div>
                    <div class="img02 imgbg"></div>
                 </div>
+                <div class="otherbtn"></div>
                 <div id="circle" style="pointer-events: none;position: absolute; z-index: 99999; background-color: rgba(255, 255, 255, 0.5); border-radius: 50%; transition: all 0.5s linear 0s; left: -50px; top: -50px; width: 0px; height: 0px;"></div>
 
 <button id="settingBtn"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16">
@@ -1386,21 +1397,7 @@ div#driver-popover-item .driver-popover-footer button {
   <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
 </svg></button>
 <div id="setting" title="setting">
-  <div class="topbar" style="width: 100%;height: 35px;box-shadow: 1px 1px 40px rgba(0, 0, 0, 0.2);display: none;background-color:white;border-radius: 15px 15px 0 0;"><span style="width: 100%;position: absolute;top: 8px;text-align: center;font-size: large;">设置</span></div>
-<div class="setItem setswitch_loading" tabindex="0">
-  <span class="text">启动加载动画开启</span>
-<label class="setswitch">
-  <input type="checkbox">
-  <span class="setslider setswitch_loading"></span>
-</label>
-</div>
-<div class="setItem setswitch_showaudio" tabindex="0">
-  <span class="text">音频可视化圆环开启</span>
-  <label class="setswitch">
-  <input type="checkbox">
-  <span class="setslider setswitch_showaudio"></span>
-</label>
-</div>
+  <div class="topbar" style="width: 100%;height: 35px;box-shadow: 1px 1px 40px rgba(0, 0, 0, 0.2);display: none;background-color:white;border-radius: 15px 15px 0 0;position: sticky;top: 0;"><span style="width: 100%;position: absolute;top: 8px;text-align: center;font-size: large;">设置</span></div>
 </div>
 
                 <canvas id="wrap" height="900" width="900" style="position:fixed;left:50%;top:50%;z-index:2;transform:translate(-50%, -50%);max-width: 100%;" name="zoom1"></canvas>
@@ -1506,7 +1503,7 @@ var currentIndex = -1; //播放列表当前播放曲数
     currentIndex = setting.play.currentIndex;
     if ($.parseJSON(localStorage.getItem("setting")).play.hasOwnProperty('time')) { //继承“创业未半”（上次播放进度）
         audio.currentTime = setting.play.time;
-        playerMusicThings(setting.play.id, setting.play.name, true);
+        playerMusicThings(setting.play.id, true);
     }
 
     if (setting.play.loop == true) {
@@ -2175,7 +2172,35 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			
 
 
-                        function playerMusicThings(id, name, pause = false) {  // playermusic函数开始
+                        function playerMusicThings(id, pause = false) {  // playermusic函数开始
+			                // 拼接请求的URL
+			                var url = "https://moeyy.cn/music/api/song/detail?ids=" + id + '&br=320000&realIP=211.161.244.70&t=' + new Date().getTime();
+			                // 发送GET请求
+			                $.get(url, function(data) {
+                                            let name = data.songs[0].name;
+			                    $("#songsnamesp").text(name);
+			                    document.title = name + '🎵';
+                                            $('.img01, .img02').css('opacity', '0');
+			                    // 获取歌曲的名称或封面链接
+			                    var picUrl = data.songs[0].al.picUrl;
+			                    $('.imghoverBtnImg').show();
+                                            $('.imghoverBtnImg').css({'background': 'url("' + picUrl + '")',
+                                                'background-repeat': 'no-repeat',
+                                                'background-size': '100%'});
+                                            $('#songsnamesp').css('left', '85px');
+                                            $('.background').hide();
+			                    $('.img01, .img02').css({
+                                                'display': 'block',
+			                        'background': "url('" + picUrl + "?param=512y512')",
+			                        'backgroundAttachment': 'fixed',
+			                        'backgroundRepeat': 'no-repeat',
+			                        'backgroundSize': 'cover'
+			                    });
+			                    $('.img01').css('animation', 'rotate 60s linear infinite');
+			                    $('.img02').css('animation', 'rotate2 60s linear infinite');
+                                            $('.img01, .img02').css('opacity', '1');
+			                });
+
 			                if ($('#result').html() !== '') {
                                             $('#back').attr("style", "display:block");
 			                    $('#showValue').css({'top':'180px','transform': 'translateX(110%)'});
@@ -2189,9 +2214,6 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                $("#back").attr("value", "返回搜索");
 			                $("#back").html("返回搜索");
 			                $('#showValue').css({'top':'180px'});
-			
-			                $("#songsnamesp").text(name);
-			                document.title = name + '🎵';
 
    			                    if(typeof plus && typeof plus != 'undefined'){setTimeout(function(){
                                                 plus.push.clear();
@@ -2216,32 +2238,6 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
                                             }
 			                });
 		
-			
-			                // 拼接请求的URL
-			                var url = "https://moeyy.cn/music/api/song/detail?ids=" + id + '&br=320000&realIP=211.161.244.70&t=' + new Date().getTime();
-			                // 发送GET请求
-			                $.get(url, function(data) {
-                                            $('.img01, .img02').css('opacity', '0');
-			                    // 获取歌曲的封面链接
-			                    var picUrl = data.songs[0].al.picUrl;
-			                    $('.imghoverBtnImg').show();
-                                            $('.imghoverBtnImg').css({'background': 'url("' + picUrl + '")',
-                                                'background-repeat': 'no-repeat',
-                                                'background-size': '100%'});
-                                            $('#songsnamesp').css('left', '85px');
-                                            $('.background').hide();
-			                    $('.img01, .img02').css({
-                                                'display': 'block',
-			                        'background': "url('" + picUrl + "?param=512y512')",
-			                        'backgroundAttachment': 'fixed',
-			                        'backgroundRepeat': 'no-repeat',
-			                        'backgroundSize': 'cover'
-			                    });
-			                    $('.img01').css('animation', 'rotate 60s linear infinite');
-			                    $('.img02').css('animation', 'rotate2 60s linear infinite');
-                                            $('.img01, .img02').css('opacity', '1');
-                                           
-			                });
 			
 			                // 拼接请求的URL
 			                var url = "https://moeyy.cn/music/api/lyric?id=" + id + '&br=320000&realIP=211.161.244.70&t=' + new Date().getTime();
@@ -2438,6 +2434,9 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                        var content = hotComments[i].content;
 			                        var commentDiv = $("<div></div>");
 			                        var img = $("<img>").attr("src", avatarUrl).attr('loading', 'lazy');
+                                                if (localStorage.getItem('darkmode') == 'true') {
+                                                    img.addClass('dark-mode');
+                                                }
                                                 var userName = $("<span class='commentUserName'>" + userNickname + "<span class='whereWhen'>" + hotComments[i].ipLocation.location
  + " " + hotComments[i].timeStr + "</span></span>")
 			                        var span = $("<span class='commentContent'></span>").text(content);
@@ -2460,6 +2459,9 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                        var content = comments[i].content;
 			                        var commentDiv = $("<div></div>");
 			                        var img = $("<img>").attr("src", avatarUrl).attr('loading', 'lazy');
+                                                if (localStorage.getItem('darkmode') == 'true') {
+                                                    img.addClass('dark-mode');
+                                                }
                                                 var userName = $("<span class='commentUserName'>" + userNickname + "<span class='whereWhen'>" + comments[i].ipLocation.location
  + " " + comments[i].timeStr + "</span></span>")
 			                        var span = $("<span class='commentContent'></span>").text(content);
@@ -2528,7 +2530,7 @@ localStorage.setItem("setting", JSON.stringify(setting));
 
 			// 事件委托绑定按钮点击事件处理程序
 			$(document).on('click', '#playerMusicBtn', function(){
-                            playerMusicThings($(this).parent().parent().attr('name'), $(this).parent().parent().attr('title'));
+                            playerMusicThings($(this).parent().parent().attr('name'));
                             $('#result tr, #valueList tr').removeClass("hover");
                             $('.tallshort').remove();
                             $(this).parent().parent().addClass("hover");
@@ -2884,6 +2886,34 @@ if (storedValues !== null) {
     });  
 });
 
+
+// 检测链接是否为歌曲分享链接
+if (window.location.href.includes('?')) {
+    const queryObject = {};   
+    (new URLSearchParams(window.location.href.split('?')[1] || '')).forEach((value, key) => {  
+      queryObject[key] = value;  
+    });  
+    const reverseDigitMap = {  
+      'z': '0',  
+      'j': '1',  
+      'f': '2',  
+      '5': '3',  
+      '@': '4',  
+      '^': '5',  
+      'a': '6',  
+      'i': '7',  
+      '0': '8',  
+      '%': '9'  
+    };  
+    if (queryObject.id && queryObject.a) {
+        const convertId = parseInt(queryObject.a.split('❤').map(digit => reverseDigitMap[digit]).join(''));
+        if (queryObject.id == convertId) {
+            playerMusicThings(convertId, true);
+        } else topTip('<svg fill="red" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>分享歌曲链接错误！确保这个是正确的链接，或删去链接?与?后的内容即可👍');
+    } else topTip('<svg fill="red" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>分享歌曲链接错误！确保这个是正确的链接，或删去链接?与?后的内容即可👍');
+}
+
+
 $('input[type="range"]').each(function() {
   var value = $(this).val();
   $(this).css('background-image', 'linear-gradient(to right, #3b82f6 ' + value + '%, #FFF 0)');
@@ -3033,82 +3063,107 @@ localStorage.setItem("setting", JSON.stringify(setting));
 			          });
 			        }, 6500);
 			    }else {$("#fullscreen, #hidescreen").remove();}});
-			
-(function () {
-        var json = JSON.parse(localStorage.getItem("setting"));
-        if ($.parseJSON(localStorage.getItem("setting")).loading == "no" || !$.parseJSON(localStorage.getItem("setting")).loading) {
-            $('.setswitch_loading .setswitch').addClass('setswitchOn');
-            json.loading = "no";
-        }
-        if ($.parseJSON(localStorage.getItem("setting")).showaudio == "no" || !$.parseJSON(localStorage.getItem("setting")).showaudio) {
-            $('.setswitch_showaudio .setswitch').addClass('setswitchOn');
-            json.showaudio = "no";
-        }
-        localStorage.setItem("setting", JSON.stringify(json));
-})()
 
-$('#settingBtn').click(function(){
+$('#settingBtn, .otherbtn').click(function(){
   if ($('#setting').attr('title') == 'setting') {
+    $('.otherbtn').css('z-index', '9999');
     $('#setting').css({'height':'95%', 'width':'300px'});
     $('#setting').attr('title', ''); 
-    $(this).css('opacity', '0');
+    $('#settingBtn').css('opacity', '0');
     $('.topbar').show();
     $('.setItem').css('display', 'flex');
     setTimeout(function(){$('#settingBtn').css('opacity', '1');$('#settingBtn').html('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg>');}, 300);
   } else {
+    $('.otherbtn').css('z-index', '0');
     $('#setting').css({'height':'30px', 'width':'40px'});
     $('#setting').attr('title', 'setting');
-    $(this).css('opacity', '0');
+    $('#settingBtn').css('opacity', '0');
     $('.topbar').hide();
     $('.setItem').hide();
     setTimeout(function(){$('#settingBtn').css('opacity', '1');$('#settingBtn').html('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/></svg>');}, 300);
   }
 })
 
-$('.setswitch_loading').click(function() {
-    if (!localStorage.getItem("setting")) {
-        localStorage.setItem("setting", '{}');
+$(document).on("click", ".setItem", function() {
+    if ($(this).find('.setswitch').hasClass('setswitchOn')) {
+        $(this).find('.setswitch').removeClass('setswitchOn');
+    } else {
+        $(this).find('.setswitch').addClass('setswitchOn');
     }
-    var json = JSON.parse(localStorage.getItem("setting"));
-    if (json.loading == "yes"){
-        json.loading = "no";
-        $('.setswitch_loading .setswitch').addClass('setswitchOn');
-    } else if (!json.hasOwnProperty('loading') || json.loading == "no") {
-        json.loading = "yes";
-        $("#fullscreen, #hidescreen").remove();
-        $('.setswitch_loading .setswitch').removeClass('setswitchOn');
-    }
-    localStorage.setItem("setting", JSON.stringify(json));
 });
 
-$('.setswitch_showaudio').click(function() {
+// 定义Setting构造函数  
+function SettingItem(div) {  
+  this.addOption = function(text, btn, fn, other) { 
+    this.options = []; 
+    if (other) {
+        if (other.defaults) {
+            var defaults = other.default;
+        } else {
+            var defaults = true;  // 未配置默认保持此项设置开启
+        }
+        if (other.localStorages) {
+            var localStorages = other.localStorages;  // 未配置则配置为class类名
+        } else {
+            var localStorages = btn;
+        }
+    }
+
+    let item = $('<div class="setItem ' + btn + '" tabindex="0"><span class="text">' + text + '</span><label class="setswitch"><input type="checkbox"><span class="setslider ' + btn + '"></span></label></div>');
+    div.append(item);
     if (!localStorage.getItem("setting")) {
         localStorage.setItem("setting", '{}');
     }
-    var json = JSON.parse(localStorage.getItem("setting"));
-    if (json.showaudio == "yes"){
-        $('.setswitch_showaudio .setswitch').addClass('setswitchOn');
-        json.showaudio = "no";
+    let json = JSON.parse(localStorage.getItem("setting"));
+    if (json[localStorages] == "no" || (!json[localStorages] && defaults)) {
+        $('.' + btn).find('.setswitch').addClass('setswitchOn');
+        json[localStorages] = "no";
+    } else {
+        json[localStorages] = "yes";
+    }
+    if (fn) {
+        $('.' + btn).click(function () {
+            let json = JSON.parse(localStorage.getItem("setting"));
+            if (json[localStorages] == 'no') { // 打开按钮时执行的函数
+                json[localStorages] = 'yes';
+                if (fn.off) {
+                    fn.off();
+                }
+            } else if (json[localStorages] == 'yes') { // 关闭按钮时执行的函数
+                json[localStorages] = 'no'; 
+                if (fn.on) {
+                    fn.on();
+                }
+            }
+            localStorage.setItem("setting", JSON.stringify(json));
+        });
+    }
+    localStorage.setItem("setting", JSON.stringify(json));
+  };   
+}  
+
+var mySetting = new SettingItem($('#setting'));
+mySetting.addOption('启动加载动画开启', 'setswitch_loading', {off: function () {
+            $("#fullscreen, #hidescreen").remove();
+}}, {localStorages: 'loading'});  
+
+mySetting.addOption('音频可视化圆环开启', 'setswitch_showaudio', {on: function() {  
         if ($('#audio-player').height() > 50) {
-                                                    if (audiodisplay == 0) {
-                                                        context = new AudioContext;
-			                                source = context.createMediaElementSource(audio);
-   		                                        analyser = context.createAnalyser();
-   		                                        //连接：source → analyser → destination
-   		                                        source.connect(analyser);
-   		                                        analyser.connect(context.destination);
-                                                        audiodisplay = audiodisplay + 1;
-                                                    }
+            if (audiodisplay == 0) {
+                context = new AudioContext;
+		source = context.createMediaElementSource(audio);
+   		analyser = context.createAnalyser();
+   		//连接：source → analyser → destination
+   		source.connect(analyser);
+   		analyser.connect(context.destination);
+                audiodisplay = audiodisplay + 1;
+            }
             $('#wrap').fadeIn();
             audioDisplay();
         }
-    } else if (!json.hasOwnProperty('showaudio') || json.showaudio == "no") {
-        $('.setswitch_showaudio .setswitch').removeClass('setswitchOn');
-        json.showaudio = "yes";
+}, off: function () {
         $('#wrap').hide();
-    }
-    localStorage.setItem("setting", JSON.stringify(json));
-});
+}}, {localStorages: 'showaudio'});  
 
 function ui_2() {
             if ($('.bghover').height() < $('.bghover').width()) {
