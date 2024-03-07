@@ -1200,6 +1200,10 @@ div#driver-popover-item .driver-popover-footer button {
   border: 1px solid #ffffff;
 }
 
+.setItem svg {
+  fill: #3b82f6;
+}
+
 .setItem:focus {
   border: 1px solid #8ab2f3;
 }
@@ -2179,6 +2183,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                $.get(url, function(data) {
                                             let name = data.songs[0].name;
 			                    $("#songsnamesp").text(name);
+                                            topTip('<svg fill="#3b82f6" viewBox="0 0 16 16"><path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z"/><path fill-rule="evenodd" d="M9 3v10H8V3h1z"/><path d="M8 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 13 2.22V4L8 5V2.82z"/></svg>开始播放' + name + '~');
 			                    document.title = name + '🎵';
                                             $('.img01, .img02').css('opacity', '0');
 			                    // 获取歌曲的名称或封面链接
@@ -2230,15 +2235,13 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                    // 获取歌曲的URL
 			                    var songUrl = data;
 			                    //var songUrl = data.data[0].url;
-			                    if (songUrl !== null) {
-                                                topTip('<svg fill="#3b82f6" viewBox="0 0 16 16"><path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z"/><path fill-rule="evenodd" d="M9 3v10H8V3h1z"/><path d="M8 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 13 2.22V4L8 5V2.82z"/></svg>开始播放' + name + '~');
+			                    if (songUrl !== '版权原因，无播放权限！') {
 			                        music(songUrl, pause);
                                             } else {
-                                                topTip('<svg fill="#3b82f6" viewBox="0 0 16 16"><path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z"/><path fill-rule="evenodd" d="M9 3v10H8V3h1z"/><path d="M8 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 13 2.22V4L8 5V2.82z"/></svg>' + name + '暂无版权哦~');
+                                                topTip('<svg fill="#3b82f6" viewBox="0 0 16 16"><path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z"/><path fill-rule="evenodd" d="M9 3v10H8V3h1z"/><path d="M8 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 13 2.22V4L8 5V2.82z"/></svg>' + name + '歌曲播放错误...');
                                             }
 			                });
-		
-			
+
 			                // 拼接请求的URL
 			                var url = "https://moeyy.cn/music/api/lyric?id=" + id + '&br=320000&realIP=211.161.244.70&t=' + new Date().getTime();
 			
@@ -3099,17 +3102,22 @@ function SettingItem(div) {
     if (other) {
         if (other.defaults) {
             var defaults = other.default;
-        } else {
-            var defaults = true;  // 未配置默认保持此项设置开启
-        }
+        } else var defaults = true;
         if (other.localStorages) {
             var localStorages = other.localStorages;  // 未配置则配置为class类名
-        } else {
-            var localStorages = btn;
-        }
+        } else var localStorages = btn;
     }
 
-    let item = $('<div class="setItem ' + btn + '" tabindex="0"><span class="text">' + text + '</span><label class="setswitch"><input type="checkbox"><span class="setslider ' + btn + '"></span></label></div>');
+    if (text) {
+        if (text.text) {
+            var texts = text.text;
+        } else var texts = text;
+        if (text.svg) {
+            var svg = text.svg;  // 未配置则配置为class类名
+        } else var svg = '';
+    } else return "text参数未配置";
+
+    let item = $('<div class="setItem ' + btn + '" tabindex="0">' + svg + '<span class="text">' + texts + '</span><label class="setswitch"><input type="checkbox"><span class="setslider ' + btn + '"></span></label></div>');
     div.append(item);
     if (!localStorage.getItem("setting")) {
         localStorage.setItem("setting", '{}');
@@ -3143,11 +3151,11 @@ function SettingItem(div) {
 }  
 
 var mySetting = new SettingItem($('#setting'));
-mySetting.addOption('启动加载动画开启', 'setswitch_loading', {off: function () {
+mySetting.addOption({text: '启动加载动画开启', svg: '<svg width="16" fill="currentColor" viewBox="0 0 16 16"><path d="m 7.5890376,1.8216881 c 0.1319745,-0.4289174 0.6910666,-0.4289174 0.823041,0 l 0.7738503,2.5176142 c 0.3453536,1.122095 1.1584081,2.0024224 2.1943771,2.3759412 l 2.322752,0.8383388 c 0.395923,0.1429718 0.395923,0.7486551 0,0.8916281 l -2.323952,0.838337 C 10.343327,9.6576801 9.5307157,10.538489 9.1859289,11.660788 l -0.7738503,2.516315 c -0.1304272,0.430529 -0.6926137,0.430529 -0.823041,0 L 6.8151868,11.659489 C 6.4700809,10.537686 5.6575207,9.6574121 4.6220101,9.2835474 L 2.2980586,8.4452104 c -0.3974115,-0.141296 -0.3974115,-0.7503318 0,-0.8916282 L 4.6220101,6.7152435 C 5.6575205,6.3413786 6.4700807,5.4611051 6.8151868,4.3393022 Z"></path><rect style="fill:none;stroke:#3b82f6;stroke-width:1.12663;stroke-linecap:square;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill" width="14.873361" height="14.873365" x="0.56331497" y="0.56331497" ry="4.6183438"></rect></svg>'}, 'setswitch_loading', {off: function () {
             $("#fullscreen, #hidescreen").remove();
 }}, {localStorages: 'loading'});  
 
-mySetting.addOption('音频可视化圆环开启', 'setswitch_showaudio', {on: function() {  
+mySetting.addOption({text: '音频可视化圆环开启', svg: '<svg width="16" viewBox="0 0 16 16"><g transform="matrix(1,0,0,0.93457939,-1,-1)"><path d="m 12,13 c 0,1.105 -1.12,2 -2.5,2 C 8.12,15 7,14.105 7,13 c 0,-1.105 1.12,-2 2.5,-2 1.38,0 2.5,0.895 2.5,2 z"/><path d="M 12,3 V 13 H 11 V 3 Z"/><path d="m 11,2.82 a 1,1 0 0 1 0.804,-0.98 l 3,-0.6 A 1,1 0 0 1 16,2.22 V 4 l -5,1 z"/><path d="M 0,11.5 A 0.5,0.5 0 0 1 0.5,11 H 4 a 0.5,0.5 0 0 1 0,1 H 0.5 A 0.5,0.5 0 0 1 0,11.5 Z m 0,-4 A 0.5,0.5 0 0 1 0.5,7 H 8 A 0.5,0.5 0 0 1 8,8 H 0.5 A 0.5,0.5 0 0 1 0,7.5 Z m 0,-4 A 0.5,0.5 0 0 1 0.5,3 H 8 A 0.5,0.5 0 0 1 8,4 H 0.5 A 0.5,0.5 0 0 1 0,3.5 Z"/></g><ellipse style="fill:none;stroke:#000000;stroke-width:0.758558;stroke-linecap:square;stroke-opacity:1;paint-order:markers stroke fill" cx="8" cy="7.9999995" rx="6.6207209" ry="6.6207204" /></svg>'}, 'setswitch_showaudio', {on: function() {  
         if ($('#audio-player').height() > 50) {
             if (audiodisplay == 0) {
                 context = new AudioContext;
