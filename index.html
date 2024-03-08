@@ -384,13 +384,15 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
 
         #lyric span:not(.active):hover {
             background: hsla(0,0%,100%,0.2);
+            filter: blur(0px) !important;
         }
 
         #lyric span.active {
             font-weight: bolder;
             margin-left: 12px;
-            opacity: 1;
+            opacity: 1 !important;
             transform: scale(1);
+            filter: blur(0px) !important;
        }
 
        .active .lyric_Chinese {
@@ -400,6 +402,10 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
        #lyric span.lyric_Wait {
          height: 0;
          padding: 0;
+       }
+
+       #lyric span:not(.active) {
+         filter: blur(1.5px);
        }
 
        #lyric span.active.lyric_Wait {
@@ -412,7 +418,7 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
          background-clip: text;
          color: transparent;
          opacity: 0.8;
-         width: 120px;
+         width: fit-content;
          background-position: 100% 0%;
          background-image: linear-gradient(to right, #335eea, #335eea 50%, white 50%, white);
          background-size: 200% 100%;
@@ -2360,6 +2366,33 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
                                                      audio.currentTime = $(this).attr("data-timestamp");
                                                  });
 
+function smoothScrollTo(element, targetPosition, duration) {  
+    var start = element.scrollTop;  
+    var change = targetPosition - start;  
+    var currentTime = 0;  
+    var increment = 20; // 20ms 时间片段  
+  
+    var animateScroll = function() {  
+        currentTime += increment;  
+        var val = Math.easeInOutQuad(currentTime, start, change, duration);  
+        element.scrollTop = val;  
+        if (currentTime < duration) {  
+            window.requestAnimationFrame(animateScroll);  
+        }  
+    };  
+  
+    // 开始动画  
+    animateScroll();  
+}  
+  
+// 缓动函数，用于平滑过渡效果  
+Math.easeInOutQuad = function (t, b, c, d) {  
+    t /= d / 2;  
+    if (t < 1) return c / 2 * t * t + b;  
+    t--;  
+    return -c / 2 * (t * (t - 2) - 1) + b;  
+};  
+
 			                    // 遍历所有歌词行，找到当前播放时间所对应的歌词行
 			                    for (var i = 0; i < lines.length; i++) {
 			                        // 获取当前歌词行的时间戳（秒）
@@ -2391,6 +2424,28 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
                                                             $('.underline, #lyric span:eq(' + index + ') div').css('animation-play-state', 'paused');
                                                         }
 			                                
+// 定义一个函数来设置元素的样式  
+function setElementStyle(element, styleObj) {  
+    element.css(styleObj);  
+}  
+  
+// 获取目标元素  
+var targetElement = $('.active');  
+  
+// 创建一个数组来存储不同的样式对象  
+var styles = [  
+    { 'filter': 'blur(0px)', 'opacity': '0.8' },  
+    { 'filter': 'blur(0.5px)', 'opacity': '0.7' },  
+    { 'filter': 'blur(1px)', 'opacity': '0.6' },
+    { 'filter': 'blur(1.2px)', 'opacity': '0.5' }    
+];  
+  
+// 遍历样式数组，并应用到上面的元素  
+for (var i = 0; i < styles.length; i++) {  
+    setElementStyle(targetElement.prevAll().eq(i), styles[i]);  
+    setElementStyle(targetElement.nextAll().eq(i), styles[i]);  
+}  
+
                                                         if (animateTime < 0.2) {
                                                             animateTime = animateTime / 0.8;
                                                         }
@@ -2406,9 +2461,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
   			                                  top = lines.eq(index).position().top;
   			                                  middle = $("#lyric").height() / 2;
    			                                  scrollTop = top - middle + $("#lyric").scrollTop() + (lines.eq(index).height()/2);
-   			                                 $("#lyric").animate({
-   			                                     scrollTop: scrollTop
-  			                                  }, animateTime * 100);
+                                                          smoothScrollTo($('#lyric')[0], scrollTop, animateTime * 100);
 			                                }
 			                            }
 			
@@ -3155,7 +3208,7 @@ mySetting.addOption({text: '启动加载动画开启', svg: '<svg width="16" fil
             $("#fullscreen, #hidescreen").remove();
 }}, {localStorages: 'loading'});  
 
-mySetting.addOption({text: '音频可视化圆环开启', svg: '<svg width="16" viewBox="0 0 16 16"><g transform="matrix(1,0,0,0.93457939,-1,-1)"><path d="m 12,13 c 0,1.105 -1.12,2 -2.5,2 C 8.12,15 7,14.105 7,13 c 0,-1.105 1.12,-2 2.5,-2 1.38,0 2.5,0.895 2.5,2 z"/><path d="M 12,3 V 13 H 11 V 3 Z"/><path d="m 11,2.82 a 1,1 0 0 1 0.804,-0.98 l 3,-0.6 A 1,1 0 0 1 16,2.22 V 4 l -5,1 z"/><path d="M 0,11.5 A 0.5,0.5 0 0 1 0.5,11 H 4 a 0.5,0.5 0 0 1 0,1 H 0.5 A 0.5,0.5 0 0 1 0,11.5 Z m 0,-4 A 0.5,0.5 0 0 1 0.5,7 H 8 A 0.5,0.5 0 0 1 8,8 H 0.5 A 0.5,0.5 0 0 1 0,7.5 Z m 0,-4 A 0.5,0.5 0 0 1 0.5,3 H 8 A 0.5,0.5 0 0 1 8,4 H 0.5 A 0.5,0.5 0 0 1 0,3.5 Z"/></g><ellipse style="fill:none;stroke:#000000;stroke-width:0.758558;stroke-linecap:square;stroke-opacity:1;paint-order:markers stroke fill" cx="8" cy="7.9999995" rx="6.6207209" ry="6.6207204" /></svg>'}, 'setswitch_showaudio', {on: function() {  
+mySetting.addOption({text: '音频可视化圆环开启', svg: '<svg width="16" viewBox="0 0 16 16"><rect style="fill:none;stroke:#3b82f6;stroke-width:1.4658;stroke-linecap:square;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill" width="14.534" height="14.534" x=".733" y=".733" ry="4.513"/><path d="M12 3v8.002h-1V3z" style="stroke-width:.894534"/><path d="M11.99 11.238c0 1.105-1.12 2-2.5 2s-2.5-.895-2.5-2 1.12-2 2.5-2 2.5.895 2.5 2z" style="fill:#000;fill-opacity:1"/><path d="M11 2.82a1 1 0 0 1 .804-.98l2.333-.41c.619-.123 1.196 1.163 1.34 1.412.178.45.345.914.457 1.432L11 5z"/><path d="M.212 11.515A.488.485 0 0 1 .7 11.03h3.412a.488.485 0 0 1 0 .97H.7a.488.485 0 0 1-.488-.485zm0-3.88A.488.485 0 0 1 .7 7.15h7.312a.488.485 0 0 1 0 .97H.7a.488.485 0 0 1-.488-.485zm0-3.88A.488.485 0 0 1 .7 3.27h7.312a.488.485 0 0 1 0 .97H.7a.488.485 0 0 1-.488-.485z"/></svg>'}, 'setswitch_showaudio', {on: function() {  
         if ($('#audio-player').height() > 50) {
             if (audiodisplay == 0) {
                 context = new AudioContext;
