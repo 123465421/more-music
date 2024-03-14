@@ -1582,9 +1582,51 @@ var endx0 = false;
         }
     }, 200);
 
+
+        let loadedImage = null;  
+        function loadImage(src) {  
+            return new Promise((resolve, reject) => {  
+                const image = new Image();  
+                image.onload = () => resolve(image);  
+                image.onerror = reject;  
+                image.src = src;  
+            });  
+        }  
+
+        function coverImg(box_w, box_h, source_w, source_h){
+            var sx = 0,
+                sy = 0,
+                sWidth = source_w,
+                sHeight = source_h;
+            if(source_w > source_h || (source_w == source_h && box_w < box_h)){
+                sWidth = box_w*sHeight/box_h;
+                sx = (source_w-sWidth)/2;
+            }else if(source_w < source_h || (source_w == source_h && box_w > box_h)){
+                sHeight = box_h*sWidth/box_w;
+                sy = (source_h-sHeight)/2;
+            }
+            return{
+                sx,
+                sy,
+                sWidth,
+                sHeight
+            }
+        }
+
+        async function drawAndScaleImage(size) {  
+            if (!loadedImage) {  
+                loadedImage = await loadImage('good.png');  
+            }
+            cxt.globalAlpha = 0.8;
+            cxt.drawImage(loadedImage, (wrap.width - loadedImage.width * size) / 4, (wrap.height - loadedImage.height * size) / 4 - 30, loadedImage.width * size, loadedImage.height * size);  
+        }  
+
 function drawSpectrum() {  
     analyser.getByteFrequencyData(output); //获取频域数据  
     cxt.clearRect(0, 0, wrap.width, wrap.height);  
+
+    drawAndScaleImage(output[1] / 400);
+
     if(endx == 0 || endx0 && endx <= 2*R) {
         endx0 = true;
         endx = endx + 1;
@@ -2273,7 +2315,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                        }
 			
 			                        // 获取当前行的时间戳（秒）
-			                        var timestamp = line.match(/\[(\d+):(\d+\.\d+)\]/);
+			                        var timestamp = line.match(/\[(\d+):(\d+(:|.)\d+)\]/);
 			                        if (timestamp) {
 			                            timestamp = parseInt(timestamp[1]) * 60 + parseFloat(timestamp[2]);
 			                        } else {
@@ -2282,7 +2324,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			
 			                        // 获取当前行的歌词内容
 			                        var content = line.replace(/\[\d+:\d+(:|.)\d+\]/, "");
-
+                                                if (content.match(/\[(\d+):(\d+(:|.)\d+)\]/)) content = "";
 			                        // 创建一个span，用于显示当前行的歌词，并添加时间戳属性
                                                 var span;
                                                 if (content !== '' || data.tlyric && data.tlyric.lyric) {
@@ -2343,6 +2385,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                            }
 			                            return minutes + ":" + seconds;
 			                }
+
 			                audio.addEventListener("timeupdate", function(event) {
                                                         event.stopImmediatePropagation();  
 			                                var currentTimeVal = formatTime(audio.currentTime);
@@ -2361,7 +2404,7 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
 			                    var currentTime = audio.currentTime;
 			                    // 获取所有歌词行
 			                    var lines = $("#lyric span");
-			
+
                                                  lines.click(function () {
                                                      audio.currentTime = $(this).attr("data-timestamp");
                                                  });
@@ -2437,7 +2480,8 @@ var styles = [
     { 'filter': 'blur(0px)', 'opacity': '0.8' },  
     { 'filter': 'blur(0.5px)', 'opacity': '0.7' },  
     { 'filter': 'blur(1px)', 'opacity': '0.6' },
-    { 'filter': 'blur(1.2px)', 'opacity': '0.5' }    
+    { 'filter': 'blur(1.2px)', 'opacity': '0.5' },
+    { 'filter': '', 'opacity': '' }    
 ];  
   
 // 遍历样式数组，并应用到上面的元素  
@@ -3035,17 +3079,11 @@ console.log("可以使用 %cconsole.clear()%c 清空控制台~", "background: #e
 			      prevBtnText: '上一步'
 			    }
 			  }]);
-			
-$(document).keyup(function (event) {
-    var selectedText = window.getSelection().toString();
-    if (event.keyCode == 83 && event.ctrlKey) {
-        var input = $(document.querySelector("#input"));
-        input.focus();
-        input.select();
-        if (selectedText !== "") {
-          input.val(selectedText);
-        }
-    }
+	
+document.addEventListener("keydown", function(e) {
+  if (e.key === "f" && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+  }
 });
 
 $(document).keyup(function (event) {
