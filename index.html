@@ -374,7 +374,7 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
             display:block;
             margin: 15px;
             margin-left: 30px;
-            opacity: .5;
+            opacity: .3;
             transform: scale(.95);
             font-weight: 800;
             border-radius: 12px;
@@ -384,7 +384,7 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
 
         #lyric span:not(.active):hover {
             background: hsla(0,0%,100%,0.2);
-            filter: blur(0px) !important;
+            opacity: .7;
         }
 
         #lyric span.active {
@@ -402,10 +402,6 @@ button:not(#settingBtn, #closeTab),input,img,.sound{
        #lyric span.lyric_Wait {
          height: 0;
          padding: 0;
-       }
-
-       #lyric span:not(.active) {
-         filter: blur(1.5px);
        }
 
        #lyric span.active.lyric_Wait {
@@ -1204,6 +1200,20 @@ div#driver-popover-item .driver-popover-footer button {
   width: calc(100% - 20px);
   display: none;
   border: 1px solid #ffffff;
+}
+
+.setItem.master {
+    width: calc(100% - 5px);
+    margin: 0;
+    margin-left: -5px;
+    margin-top: -5px;
+}
+
+#setting .masterItem {
+    background-color: rgba(255, 255, 255, 0.6);
+    padding: 5px;
+    margin: 5px;
+    border-radius: 10px;
 }
 
 .setItem svg {
@@ -2098,6 +2108,25 @@ localStorage.setItem("setting", JSON.stringify(setting));
 			}
 			
 			$(document).ready(function() {
+        // 触屏手势检测
+        var startX, endX, swipeThreshold;  
+        // 设置滑动阈值为元素宽度的20%  
+        swipeThreshold = $('body')[0].offsetWidth * 0.2;  
+        $('body')[0].addEventListener('touchstart', function(e) {  
+            startX = e.touches[0].clientX;  
+        }, false);  
+        $('body')[0].addEventListener('touchend', function(e) {  
+            endX = e.changedTouches[0].clientX;  
+            var diffX = endX - startX;  
+            if (Math.abs(diffX) > swipeThreshold) {  
+                if (diffX < 0) {  
+                    $('#settingBtn').click()
+                } else if (diffX > 0) {  
+                    $('#showValue').click();
+                }  
+            }  
+        }, false);  
+
 			  $(document).on('click', '#addBtn', function() {
 			    var btnValue = $(this).parent().parent().attr('name');
 			    var btnTitle = $(this).parent().parent().attr('title');
@@ -2175,10 +2204,12 @@ if (storedValues.some(e => e.title === btnTitle && e.value === btnValue)) {
                           });
 			
 			  $(document).on('click', '.playerMusicBtn#playerMusicBtn', function() {
-                              currentIndex = $(this).index('.playerMusicBtn#playerMusicBtn');
-                              var setting = $.parseJSON(localStorage.getItem("setting"));
-                              setting.play.currentIndex = currentIndex;
-                              localStorage.setItem("setting", JSON.stringify(setting));
+                              if (window.location.href.includes('?')) {
+                                  currentIndex = $(this).index('.playerMusicBtn#playerMusicBtn');
+                                  var setting = $.parseJSON(localStorage.getItem("setting"));
+                                  setting.play.currentIndex = currentIndex;
+                                  localStorage.setItem("setting", JSON.stringify(setting));
+                              }
                           });
 
 			  var listPlayBtn = false;
@@ -2477,11 +2508,11 @@ var targetElement = $('.active');
   
 // 创建一个数组来存储不同的样式对象  
 var styles = [  
-    { 'filter': 'blur(0px)', 'opacity': '0.8' },  
-    { 'filter': 'blur(0.5px)', 'opacity': '0.7' },  
-    { 'filter': 'blur(1px)', 'opacity': '0.6' },
-    { 'filter': 'blur(1.2px)', 'opacity': '0.5' },
-    { 'filter': '', 'opacity': '' }    
+    { 'opacity': '0.8' },  
+    { 'opacity': '0.65' },  
+    { 'opacity': '0.5' },
+    { 'opacity': '0.35' },
+    { 'opacity': '' }    
 ];  
   
 // 遍历样式数组，并应用到上面的元素  
