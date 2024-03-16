@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js 图片移动</title>
+    <style>
+        body { margin: 0; }  
+        canvas { display: block; }  
+        #controls { position: absolute; top: 10px; left: 10px; }  button{width:50px;height:50px;user-select:none;}
+    </style>
+</head>
+
+<body>
+    <div id="controls">
+        <button id="forward">前进</button>
+        <button id="backward">后退</button>
+        <button id="left">左移</button>
+        <button id="right">右移</button>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/three@latest/build/three.min.js"></script>
+    <script src="script.js"></script>
+
+    <script>
+        let scene, camera, renderer, planeMesh;  
+        let moveSpeed = 0.1; // 可以调整移动速度  
+        let cameraPosition = { x: 0, y: 0, z: 5 };  
+        let moveForwardInterval, moveBackwardInterval, moveLeftInterval, moveRightInterval; 
+        
+        function init() {  
+            // 创建场景  
+            scene = new THREE.Scene();  
+              
+            // 创建相机  
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);  
+            camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);  
+              
+            // 创建渲染器  
+            renderer = new THREE.WebGLRenderer();  
+            renderer.setSize(window.innerWidth, window.innerHeight);  
+            document.body.appendChild(renderer.domElement);  
+              
+            // 加载纹理  
+            const textureLoader = new THREE.TextureLoader();  
+            const texture = textureLoader.load('https://p4.music.126.net/BD2SgzLzaWTIR8rbrvvG0A==/109951169092273738.jpg?param=40y40'); // 替换为你的图片路径  
+              
+            // 创建平面几何体  
+            const geometry = new THREE.PlaneGeometry(1, 1);  
+              
+            // 创建材质  
+            const material = new THREE.MeshBasicMaterial({ map: texture,side: THREE.DoubleSide  });  
+              
+            // 创建平面网格  
+            planeMesh = new THREE.Mesh(geometry, material);  
+            scene.add(planeMesh);  
+              
+            // 绑定按钮事件  
+            document.getElementById('forward').addEventListener('mousedown', startMovingForward);  
+            document.getElementById('forward').addEventListener('mouseup', stopMoving);  
+            document.getElementById('forward').addEventListener('mouseleave', stopMoving); // 如果鼠标离开按钮也停止移动  
+          
+            document.getElementById('backward').addEventListener('mousedown', startMovingBackward);  
+            document.getElementById('backward').addEventListener('mouseup', stopMoving);  
+            document.getElementById('backward').addEventListener('mouseleave', stopMoving);  
+          
+            document.getElementById('left').addEventListener('mousedown', startMovingLeft);  
+            document.getElementById('left').addEventListener('mouseup', stopMoving);  
+            document.getElementById('left').addEventListener('mouseleave', stopMoving);  
+          
+            document.getElementById('right').addEventListener('mousedown', startMovingRight);  
+            document.getElementById('right').addEventListener('mouseup', stopMoving);  
+            document.getElementById('right').addEventListener('mouseleave', stopMoving);  
+              // 为前进按钮添加触摸事件  
+            var forwardButton = document.getElementById('forward');  
+            forwardButton.addEventListener('touchstart', startMovingForward);  
+            forwardButton.addEventListener('touchend', stopMoving);  
+            forwardButton.addEventListener('touchcancel', stopMoving); // 当触摸被取消时停止移动  
+          
+            // 为后退按钮添加触摸事件  
+            var backwardButton = document.getElementById('backward');  
+            backwardButton.addEventListener('touchstart', startMovingBackward);  
+            backwardButton.addEventListener('touchend', stopMoving);  
+            backwardButton.addEventListener('touchcancel', stopMoving);  
+          
+            // 为左移按钮添加触摸事件  
+            var leftButton = document.getElementById('left');  
+            leftButton.addEventListener('touchstart', startMovingLeft);  
+            leftButton.addEventListener('touchend', stopMoving);  
+            leftButton.addEventListener('touchcancel', stopMoving);  
+          
+            // 为右移按钮添加触摸事件  
+            var rightButton = document.getElementById('right');  
+            rightButton.addEventListener('touchstart', startMovingRight);  
+            rightButton.addEventListener('touchend', stopMoving);  
+            rightButton.addEventListener('touchcancel', stopMoving);  
+              
+          // 监听触摸事件  
+        var isUserInteracting = false;  
+        var onPointerDownPointerX;  
+        var onPointerDownPointerY;  
+        var onPointerDownLon;  
+        var onPointerDownLat;  
+          
+        var lon = 0;  
+        var lat = 0;  
+        var phi = 0;  
+        var theta = 0;  
+          
+        function onDocumentPointerDown(event) {  
+            event.preventDefault();  
+          
+            isUserInteracting = true;  
+          
+            onPointerDownPointerX = event.clientX;  
+            onPointerDownPointerY = event.clientY;  
+          
+            onPointerDownLon = lon;  
+            onPointerDownLat = lat;  
+        }  
+          
+        function onDocumentPointerMove(event) {  
+            if (isUserInteracting === true) {  
+                event.preventDefault();  
+          
+                var dx = event.clientX - onPointerDownPointerX;  
+                var dy = event.clientY - onPointerDownPointerY;  
+          
+                lon += dx * 0.01;  
+                lat -= dy * 0.01;  
+          
+                lat = Math.max(-85, Math.min(85, lat));  
+                phi = THREE.MathUtils.degToRad(90 - lat);  
+                theta = THREE.MathUtils.degToRad(lon);  
+          
+                camera.position.x = 1 * Math.sin(phi) * Math.cos(theta);  
+                camera.position.y = 1 * Math.cos(phi);  
+                camera.position.z = 1 * Math.sin(phi) * Math.sin(theta);  
+          
+                camera.lookAt(scene.position);  
+            }  
+        }  
+          
+        function onDocumentPointerUp(event) {  
+            isUserInteracting = false;  
+        }  
+          
+        // 添加触摸事件监听器  
+        renderer.domElement.addEventListener('pointerdown', onDocumentPointerDown, false);  
+        renderer.domElement.addEventListener('pointermove', onDocumentPointerMove, false);  
+        renderer.domElement.addEventListener('pointerup', onDocumentPointerUp, false);  
+            // 渲染循环  
+            function animate() {  
+                requestAnimationFrame(animate);  
+                renderer.render(scene, camera);  
+            }  
+            animate();  
+              
+            // 窗口大小改变时更新相机和渲染器  
+            window.addEventListener('resize', onWindowResize, false);  
+        }  
+          
+        function moveCamera(x, y, z) {  
+            cameraPosition.x += x;  
+            cameraPosition.y += y;  
+            cameraPosition.z += z;  
+            camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);  
+        }  
+          
+        function onWindowResize() {  
+            camera.aspect = window.innerWidth / window.innerHeight;  
+            camera.updateProjectionMatrix();  
+            renderer.setSize(window.innerWidth, window.innerHeight);  
+        }  
+          
+        function startMovingForward() {  
+            moveForwardInterval = setInterval(() => moveCamera(0, 0, -moveSpeed), 50); // 50ms 间隔  
+        }  
+          
+        function startMovingBackward() {  
+            moveBackwardInterval = setInterval(() => moveCamera(0, 0, moveSpeed), 50);  
+        }  
+          
+        function startMovingLeft() {  
+            moveLeftInterval = setInterval(() => moveCamera(-moveSpeed, 0, 0), 50);  
+        }  
+          
+        function startMovingRight() {  
+            moveRightInterval = setInterval(() => moveCamera(moveSpeed, 0, 0), 50);  
+        }  
+          
+        function stopMoving() {  
+            clearInterval(moveForwardInterval);  
+            clearInterval(moveBackwardInterval);  
+            clearInterval(moveLeftInterval);  
+            clearInterval(moveRightInterval);  
+        }  
+          
+        function moveCamera(x, y, z) {  
+            cameraPosition.x += x;  
+            cameraPosition.y += y;  
+            cameraPosition.z += z;  
+            camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);  
+        }  
+        
+        // 初始化  
+        init();
+    </script>
+</body>
+
+</html>
