@@ -10,21 +10,6 @@
         canvas { display: block; }  
         #controls { position: absolute; bottom: 10px; left: 10px; }  button{width:50px;height:50px;user-select:none;}
     </style>
-
-    <style>
-        ({
-          const loader = new THREE.CubeTextureLoader();
-          const texture = loader.load([
-            'resources/images/cubemaps/computer-history-museum/pos-x.jpg',
-            'resources/images/cubemaps/computer-history-museum/neg-x.jpg',
-            'resources/images/cubemaps/computer-history-museum/pos-y.jpg',
-            'resources/images/cubemaps/computer-history-museum/neg-y.jpg',
-            'resources/images/cubemaps/computer-history-museum/pos-z.jpg',
-            'resources/images/cubemaps/computer-history-museum/neg-z.jpg',
-          ]);
-          scene.background = texture;
-        })()
-    </style>
 </head>
 
 <body>
@@ -40,7 +25,7 @@
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/three@latest/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.131.2/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://i.morechatol.eu.org/other/OrbitControls.js"></script>
 
     <script>
         let scene, camera, renderer, planeMesh;  
