@@ -232,9 +232,9 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 		if ( this.lookVertical ) this.lat -= this.mouseY * actualLookSpeed * verticalLookRatio;
 
 		this.lat = Math.max( - 85, Math.min( 85, this.lat ) );
-		this.phi = THREE.Math.degToRad( 90 - this.lat );
+		this.phi = THREE.MathUtils.degToRad( 90 - this.lat );
 
-		this.theta = THREE.Math.degToRad( this.lon );
+		this.theta = THREE.MathUtils.degToRad( this.lon );
 
 		if ( this.constrainVertical ) {
 
