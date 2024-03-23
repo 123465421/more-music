@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moren Three.js</title>
+    <style>
+        body { margin: 0; }  
+        canvas { display: block; }  
+        #controls { position: absolute; bottom: 30px; left: 30px; }  button{width:60px;height:60px;user-select:none;}
+    </style>
+
+    <style>
+        #coordinates {  
+            position: absolute;  
+            top: 10px;  
+            left: 10px;  
+            color: white; /* 或者你想要的任何颜色 */  
+            font-family: Arial, sans-serif;  
+            background-color: rgba(0, 0, 0, 0.5); /* 半透明背景，以便在深色画布上看得更清楚 */  
+            padding: 5px;  
+            border-radius: 5px;  
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="controls">
+        <button id="forward" style="position:absolute;bottom:60px;left:60px;">前进</button>
+        <button id="backward" style="position:absolute;left:60px;">后退</button>
+        <button id="left">左移</button>
+        <button id="right" style="position:absolute;left:120px;">右移</button>
+        <div style="position:fixed;bottom:120px;right:0px;">
+            <button id="up" style="position:absolute;right:10px;bottom:-40px;">上移</button>
+            <button id="down" style="position:absolute;right:10px;bottom:-100px;">下移</button>
+
+        </div>
+    </div>
+    <div id="coordinates"></div>
+    <script src="./three.min.js" type="module"></script>
+    <script src="./noise.js"></script>
+    <script src="./cannon.min.js"></script>
+    <script type="module">
+        import { OrbitControls } from './OrbitControls.js';
+        import { FirstPersonControls } from './FirstPersonControls.js';
+        let scene, camera, renderer, planeMesh, cube, controls2, controls, terrainMesh;  
+                let moveSpeed = 0.1; // 可以调整移动速度  
+        
+                let moveForwardInterval, moveBackwardInterval, moveLeftInterval, moveRightInterval, moveDownInterval, moveUpInterval; 
+                
+                function init() {  
+                    // 创建场景  
+                    scene = new THREE.Scene(); 
+                  
+                  const urls = ["https://img.moeyy.xyz/file/75341ff6d1c31ccb9eab7.jpg","https://img.moeyy.xyz/file/75341ff6d1c31ccb9eab7.jpg","https://img.moeyy.xyz/file/75341ff6d1c31ccb9eab7.jpg","https://img.moeyy.xyz/file/ec6495d6714058fa30fd0.jpg","https://img.moeyy.xyz/file/75341ff6d1c31ccb9eab7.jpg","https://img.moeyy.xyz/file/75341ff6d1c31ccb9eab7.jpg"];
+                  var loader = new THREE.CubeTextureLoader();
+                  var textureCube = loader.load(urls);
+                  textureCube.format = THREE.RGBAFormat; 
+                  textureCube.generateMipmaps = false;
+                  scene.background = textureCube;
+        //var cubeLoader = loader.load("https://threejs.org/manual/examples/resources/images/equirectangularmaps/tears_of_steel_bridge_2k.jpg",() => {cubeLoader.mapping = THREE.EquirectangularReflectionMapping;cubeLoader.colorSpace = THREE.SRGBColorSpace;scene.background = cubeLoader;});
+                      
+                  var axes = new THREE.AxesHelper( 20 );
+                    scene.add(axes);
+                    // 创建相机  
+                    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);  
+                    camera.position.set(0, 0, 5);  
+                 
+                    // 创建渲染器  
+                    renderer = new THREE.WebGLRenderer({antialias: true});  
+                    renderer.setSize(window.innerWidth, window.innerHeight);  
+                    document.body.appendChild(renderer.domElement);  
+                      
+                    // 加载纹理  
+                    const textureLoader = new THREE.TextureLoader();  
+                    const texture = textureLoader.load('https://i.morechatol.eu.org/good.png'); // 替换为你的图片路径  
+                      
+                    // 创建平面几何体  
+                    const geometry = new THREE.PlaneGeometry(10, 10);  
+                      
+                    // 创建材质  
+                    const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide  });  
+                      
+                    // 创建平面网格  
+                    planeMesh = new THREE.Mesh(geometry, material);  
+                    planeMesh.position.set(0, 5, 0);
+                    scene.add(planeMesh);  
+        
+const world = new CANNON.World();  
+world.gravity.set(0, -9.81, 0); // 设置重力加速度
+
+const WIDTH = 400;  
+const HEIGHT = 400;  
+const SCALE = 30;  
+function generateTerrain() {  
+const simplex = new SimplexNoise();  
+const vertices = []; // 存储顶点位置  
+const colors = []; // 存储顶点颜色  
+const indices = []; // 存储索引  
+  
+for (let x = 0; x < WIDTH; x++) {  
+    for (let z = 0; z < HEIGHT; z++) {  
+        const noise = simplex.noise2D(x / SCALE, z / SCALE);  
+        const y = noise * 10 + 5; // 根据噪声计算高度  
+  
+        // 将顶点位置添加到vertices数组  
+        vertices.push(x, y, z);  
+  
+        // 根据y值计算颜色，这里使用简单的颜色映射  
+        // 假设y值越高，颜色越亮（从蓝色渐变到黄色）  
+        const colorValue = Math.max(0, Math.min(1, (y - 10) / (20 - 10))); // 归一化y值到[0, 1]范围  
+        const color = new THREE.Color(`hsl(${colorValue * 360}, 100%, 50%)`); // HSL颜色空间  
+  
+        // 将颜色值（r, g, b）添加到colors数组  
+        colors.push(color.r, color.g, color.b);  
+    }  
+}  
+  
+// 创建索引以定义地形网格的三角形  
+for (let x = 0; x < WIDTH - 1; x++) {  
+    for (let z = 0; z < HEIGHT - 1; z++) {  
+        const a = x * HEIGHT + z;  
+        const b = x * HEIGHT + z + 1;  
+        const c = (x + 1) * HEIGHT + z;  
+        const d = (x + 1) * HEIGHT + z + 1;  
+  
+        // 两个三角形共享两个顶点  
+        indices.push(a, b, d);  
+        indices.push(a, d, c);  
+    }  
+}  
+  
+// 创建BufferGeometry  
+const geometry = new THREE.BufferGeometry();  
+  
+// 设置顶点位置属性  
+geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));  
+  
+// 设置顶点颜色属性  
+geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));  
+  
+// 设置索引  
+geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indices), 1));  
+  
+// 如果需要，计算法线  
+geometry.computeVertexNormals();  
+  
+// 创建材质，并启用顶点颜色  
+const material = new THREE.MeshPhongMaterial({  
+    vertexColors: THREE.VertexColors // 使用顶点颜色渲染  
+});  
+  
+// 创建地形网格  
+const terrainMesh = new THREE.Mesh(geometry, material);  
+  
+terrainMesh.position.set(-(WIDTH/2), -10, -(WIDTH/2));
+
+// 将地形网格添加到场景中  
+scene.add(terrainMesh);
+}
+generateTerrain();
+
+// 设置渲染器的阴影映射属性  
+renderer.shadowMap.enabled = true; // 启用阴影映射  
+renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 使用柔和阴影，根据需要调整  
+
+var directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);  
+directionalLight.position.set(10, 10, 10); // 设置光源位置  
+directionalLight.castShadow = true; // 启用阴影投射  
+scene.add(directionalLight);  
+
+var directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);  
+directionalLight.position.set(-10, 10, -10); // 设置光源位置  
+directionalLight.castShadow = true; // 启用阴影投射  
+scene.add(directionalLight);  
+
+function cloud(){
+// 加载纹理  
+const textureLoader = new THREE.TextureLoader();  
+const texture = textureLoader.load('cloud.png'); // 替换为你的纹理图片路径  
+texture.transparent = true; // 启用透明  
+
+// 创建双面渲染的材质  
+const material = new THREE.MeshBasicMaterial({  
+    map: texture,  
+    transparent: true, // 启用透明  
+    side: THREE.DoubleSide // 双面渲染  
+});  
+  
+// 创建平面网格  
+const planeGeometry = new THREE.PlaneGeometry(60, 50); // 你可以调整平面的大小  
+  
+// 添加十张图片到随机位置  
+const numImages = 20;  
+for (let i = 0; i < numImages; i++) {  
+    const plane = new THREE.Mesh(planeGeometry, material);  
+  
+    // 生成随机位置  
+    const randomX = Math.random() * 200 - 100; // 假设场景在-50到50的x范围内  
+    const randomY = Math.random() * (100 - 40) + 40; // 假设场景在40到60的y范围内  
+    const randomZ = Math.random() * 200 - 100; // 假设场景在-50到50的z范围内  
+    plane.position.set(randomX, randomY, randomZ);  
+
+    // 如果需要，可以旋转网格以获得不同的角度  
+    plane.rotation.y = Math.random() * 2;  
+    // 添加到场景  
+    scene.add(plane);  
+} 
+}
+cloud();
+
+(function() {
+// 创建一个球体几何体
+const geometry = new THREE.SphereGeometry(WIDTH / 2, 32, 32);
+
+// 加载纹理  
+const textureLoader = new THREE.TextureLoader();  
+const texture = textureLoader.load('https://img.moeyy.xyz/file/75341ff6d1c31ccb9eab7.jpg'); // 替换为你的图片路径  
+// 创建材质
+const material = new THREE.MeshBasicMaterial({map: texture, side: THREE.DoubleSide});
+
+// 使用几何体和材质创建球体
+const sphere = new THREE.Mesh(geometry, material);
+
+// 将球体添加到场景中
+scene.add(sphere);
+})()
+const shape = new CANNON.Box(new CANNON.Vec3(1, 1, 1)); // 假设摄像机是一个立方体  
+const mass = 1; // 设置质量  
+const body = new CANNON.Body({ mass: mass });  
+body.addShape(shape);  
+body.position.set(0, 10, 0); // 设置初始位置  
+world.addBody(body); // 将刚体添加到物理世界中
+
+                            let geometry2 = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+        const material2 = new THREE.MeshBasicMaterial({ color: 0xff0000, map: texture}); // 使用最基础的材质，颜色设为红色
+        cube = new THREE.Mesh(geometry2, material2);
+        cube.position.set(2, 0, 0);
+        scene.add(cube);
+        const tick = () => {
+          cube.rotation.y += 0.01;
+          renderer.render(scene, camera);
+          window.requestAnimationFrame(tick);
+        };
+
+        controls = new FirstPersonControls(camera, renderer.domElement);
+        controls.activeLook = false;
+        controls2 = new OrbitControls(camera, renderer.domElement);
+controls2.enableZoom = false; // 允许缩放  
+controls2.enableRotate = true; // 允许旋转  
+controls2.enablePan = false; // 允许平移  
+
+        BoxFollow();
+
+                  
+                    // 绑定按钮事件  
+                    document.getElementById('forward').addEventListener('mousedown', startMovingForward);  
+                    document.getElementById('forward').addEventListener('mouseup', stopMovingForward);  
+                    document.getElementById('forward').addEventListener('mouseleave', stopMovingForward); // 如果鼠标离开按钮也停止移动  
+                  
+                    document.getElementById('backward').addEventListener('mousedown', startMovingBackward);  
+                    document.getElementById('backward').addEventListener('mouseup', stopMovingBackward);  
+                    document.getElementById('backward').addEventListener('mouseleave', stopMovingBackward);  
+                  
+                    document.getElementById('left').addEventListener('mousedown', startMovingLeft);  
+                    document.getElementById('left').addEventListener('mouseup', stopMovingLeft);  
+                    document.getElementById('left').addEventListener('mouseleave', stopMovingLeft);  
+                  
+                    document.getElementById('right').addEventListener('mousedown', startMovingRight);  
+                    document.getElementById('right').addEventListener('mouseup', stopMovingRight);  
+                    document.getElementById('right').addEventListener('mouseleave', stopMovingRight); 
+        
+                    document.getElementById('up').addEventListener('mousedown', startMovingUp);  
+                    document.getElementById('up').addEventListener('mouseup', stopMovingUp);  
+                    document.getElementById('up').addEventListener('mouseleave', stopMovingUp); 
+        
+                    document.getElementById('down').addEventListener('mousedown', startMovingDown);  
+                    document.getElementById('down').addEventListener('mouseup', stopMovingDown);  
+                    document.getElementById('down').addEventListener('mouseleave', stopMovingDown); 
+
+                  
+                      // 为前进按钮添加触摸事件  
+                    var forwardButton = document.getElementById('forward');  
+                    forwardButton.addEventListener('touchstart', startMovingForward, { passive: true });  
+                    forwardButton.addEventListener('touchend', stopMovingForward);  
+                    forwardButton.addEventListener('touchcancel', stopMovingForward); // 当触摸被取消时停止移动  
+                  
+                    // 为后退按钮添加触摸事件  
+                    var backwardButton = document.getElementById('backward');  
+                    backwardButton.addEventListener('touchstart', startMovingBackward, { passive: true });  
+                    backwardButton.addEventListener('touchend', stopMovingBackward);  
+                    backwardButton.addEventListener('touchcancel', stopMovingBackward);  
+                  
+                    // 为左移按钮添加触摸事件  
+                    var leftButton = document.getElementById('left');  
+                    leftButton.addEventListener('touchstart', startMovingLeft, { passive: true });  
+                    leftButton.addEventListener('touchend', stopMovingLeft);  
+                    leftButton.addEventListener('touchcancel', stopMovingLeft);  
+                  
+                    // 为右移按钮添加触摸事件  
+                    var rightButton = document.getElementById('right');  
+                    rightButton.addEventListener('touchstart', startMovingRight, { passive: true });  
+                    rightButton.addEventListener('touchend', stopMovingRight);  
+                    rightButton.addEventListener('touchcancel', stopMovingRight);  
+                  
+                    // 为上移按钮添加触摸事件  
+                    var upButton = document.getElementById('up');  
+                    upButton.addEventListener('touchstart', startMovingUp, { passive: true });  
+                    upButton.addEventListener('touchend', stopMovingUp);  
+                    upButton.addEventListener('touchcancel', stopMovingUp); 
+        
+                    // 为下移按钮添加触摸事件  
+                    var downButton = document.getElementById('down');  
+                    downButton.addEventListener('touchstart', startMovingDown, { passive: true });  
+                    downButton.addEventListener('touchend', stopMovingDown);  
+                    downButton.addEventListener('touchcancel', stopMovingDown); 
+     
+                  var clock = new THREE.Clock();
+                    // 渲染循环  
+                    function animate() {  
+
+    controls.update(clock.getDelta());
+    controls2.update(clock.getDelta());
+BoxFollow();
+
+                          // 更新坐标显示  
+            const x = cube.position.x.toFixed(2);  
+            const y = cube.position.y.toFixed(2);  
+            const z = cube.position.z.toFixed(2);  
+            document.getElementById('coordinates').textContent = `X: ${x}, Y: ${y}, Z: ${z}`; 
+                        requestAnimationFrame(animate);  
+                        renderer.render(scene, camera);  
+                    }  
+                    animate();  
+                      
+                    // 窗口大小改变时更新相机和渲染器  
+                    window.addEventListener('resize', onWindowResize, false);  
+                }  
+                  
+                function moveCamera(x, y, z) {  
+                    camera.position.x += x;  
+                    camera.position.y += y;  
+                    camera.position.z += z;  
+                }  
+                  
+                function onWindowResize() {  
+                    camera.aspect = window.innerWidth / window.innerHeight;  
+                    camera.updateProjectionMatrix();  
+                    renderer.setSize(window.innerWidth, window.innerHeight);  
+                }  
+        
+        function BoxFollow() {
+        const dir = new THREE.Vector3();  
+        camera.getWorldDirection(dir);  
+        const newPosition = camera.position.clone().add(dir.clone().multiplyScalar(0.4)); 
+        newPosition.y -= 0.25;  
+        // 设置cube的位置为计算出的新位置  
+        cube.position.copy(newPosition);
+        newPosition.y += 0.25;  
+        controls2.target = newPosition; 
+        }
+                function startMovingForward() {  
+                    moveForwardInterval = setInterval(function(){const dir = new THREE.Vector3();
+        // 获取相机的视线方向
+        camera.getWorldDirection(dir);
+        // dis向量表示相机沿着相机视线方向平移的位移量
+        const dis = dir.clone().multiplyScalar(moveSpeed);
+        // 相机沿着视线方向平移
+        camera.position.add(dis);BoxFollow();}, 10);
+                }  
+                  
+                function startMovingBackward() {  
+                    moveBackwardInterval = setInterval(function(){const dir = new THREE.Vector3();
+        // 获取相机的视线方向
+        camera.getWorldDirection(dir);
+        const dis = dir.clone().multiplyScalar(-moveSpeed);  
+        camera.position.add(dis);BoxFollow(); }, 10);  
+                }  
+                
+        // 计算左向量，与视线方向垂直  
+        function computeLeftVector(forward, up) {  
+            const left = new THREE.Vector3();  
+            left.crossVectors(up, forward).normalize();  
+            return left;  
+        }  
+          
+                function startMovingLeft() {  
+                  const dir = new THREE.Vector3();  
+        camera.getWorldDirection(dir);  
+        const left = computeLeftVector(dir, up);  
+                    moveLeftInterval = setInterval(function(){const dis = left.clone().multiplyScalar(moveSpeed);  
+            camera.position.add(dis);BoxFollow();}, 10);  
+                }  
+                  
+        const up = new THREE.Vector3(0, 1, 0);
+                function startMovingRight() {  
+        const dir = new THREE.Vector3();  
+        camera.getWorldDirection(dir);  
+        const left = computeLeftVector(dir, up);  
+                    moveRightInterval = setInterval(function(){const dis = left.clone().multiplyScalar(-moveSpeed);  
+            camera.position.add(dis);BoxFollow();}  , 10);  
+                }  
+                  
+                function startMovingDown() {  
+                    moveDownInterval = setInterval(function(){moveCamera(0, -moveSpeed, 0);BoxFollow();}, 10);  
+                }  
+        
+                function startMovingUp() {  
+                    moveUpInterval = setInterval(function(){moveCamera(0, moveSpeed, 0);BoxFollow();}, 10);  
+                }  
+        
+                function stopMovingForward() {
+                    clearInterval(moveForwardInterval); 
+                }  
+        
+                function stopMovingBackward() {
+                    clearInterval(moveBackwardInterval);  
+                }  
+        
+                function stopMovingLeft() {
+                    clearInterval(moveLeftInterval);  
+                }  
+        
+                function stopMovingRight() {
+                    clearInterval(moveRightInterval);  
+                }  
+        
+                function stopMovingDown() {
+                    clearInterval(moveDownInterval);  
+                }  
+        
+                function stopMovingUp() {
+                    clearInterval(moveUpInterval);  
+                }  
+                
+                // 初始化  
+                init();
+    </script>
+</body>
+
+</html>
