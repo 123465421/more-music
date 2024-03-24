@@ -45,7 +45,12 @@
     <script type="module">
         import { OrbitControls } from './OrbitControls.js';
         import { FirstPersonControls } from './FirstPersonControls.js';
-        let scene, camera, renderer, planeMesh, cube, controls2, controls, terrainMesh;  
+        import { Water } from './Water.js';
+        import { Sky } from './Sky.js';
+        import { OBJLoader } from './OBJLoader.js';  
+        import { MTLLoader } from './MTLLoader.js';
+
+        let scene, camera, renderer, planeMesh, cube, controls2, controls, terrainMesh, water, duck;  
                 let moveSpeed = 0.1; // 可以调整移动速度  
         
                 let moveForwardInterval, moveBackwardInterval, moveLeftInterval, moveRightInterval, moveDownInterval, moveUpInterval; 
@@ -53,14 +58,6 @@
                 function init() {  
                     // 创建场景  
                     scene = new THREE.Scene(); 
-                  
-                  const urls = ["https://img.moeyy.xyz/file/75341ff6d1c31ccb9eab7.jpg","https://img.moeyy.xyz/file/75341ff6d1c31ccb9eab7.jpg","https://img.moeyy.xyz/file/75341ff6d1c31ccb9eab7.jpg","https://img.moeyy.xyz/file/ec6495d6714058fa30fd0.jpg","https://img.moeyy.xyz/file/75341ff6d1c31ccb9eab7.jpg","https://img.moeyy.xyz/file/75341ff6d1c31ccb9eab7.jpg"];
-                  var loader = new THREE.CubeTextureLoader();
-                  var textureCube = loader.load(urls);
-                  textureCube.format = THREE.RGBAFormat; 
-                  textureCube.generateMipmaps = false;
-                  scene.background = textureCube;
-        //var cubeLoader = loader.load("https://threejs.org/manual/examples/resources/images/equirectangularmaps/tears_of_steel_bridge_2k.jpg",() => {cubeLoader.mapping = THREE.EquirectangularReflectionMapping;cubeLoader.colorSpace = THREE.SRGBColorSpace;scene.background = cubeLoader;});
                       
                   var axes = new THREE.AxesHelper( 20 );
                     scene.add(axes);
@@ -96,8 +93,7 @@ const HEIGHT = 400;
 const SCALE = 30;  
 function generateTerrain() {  
 const simplex = new SimplexNoise();  
-const vertices = []; // 存储顶点位置  
-const colors = []; // 存储顶点颜色  
+const vertices = []; // 存储顶点位置   
 const indices = []; // 存储索引  
   
 for (let x = 0; x < WIDTH; x++) {  
@@ -107,15 +103,7 @@ for (let x = 0; x < WIDTH; x++) {
   
         // 将顶点位置添加到vertices数组  
         vertices.push(x, y, z);  
-  
-        // 根据y值计算颜色，这里使用简单的颜色映射  
-        // 假设y值越高，颜色越亮（从蓝色渐变到黄色）  
-        const colorValue = Math.max(0, Math.min(1, (y - 10) / (20 - 10))); // 归一化y值到[0, 1]范围  
-        const color = new THREE.Color(`hsl(${colorValue * 360}, 100%, 50%)`); // HSL颜色空间  
-  
-        // 将颜色值（r, g, b）添加到colors数组  
-        colors.push(color.r, color.g, color.b);  
-    }  
+    } 
 }  
   
 // 创建索引以定义地形网格的三角形  
@@ -138,9 +126,6 @@ const geometry = new THREE.BufferGeometry();
 // 设置顶点位置属性  
 geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));  
   
-// 设置顶点颜色属性  
-geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));  
-  
 // 设置索引  
 geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indices), 1));  
   
@@ -149,7 +134,8 @@ geometry.computeVertexNormals();
   
 // 创建材质，并启用顶点颜色  
 const material = new THREE.MeshPhongMaterial({  
-    vertexColors: THREE.VertexColors // 使用顶点颜色渲染  
+    vertexColors: THREE.VertexColors, // 使用顶点颜色渲染  
+    side: THREE.DoubleSide
 });  
   
 // 创建地形网格  
@@ -175,6 +161,91 @@ var directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
 directionalLight.position.set(-10, 10, -10); // 设置光源位置  
 directionalLight.castShadow = true; // 启用阴影投射  
 scene.add(directionalLight);  
+
+var directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);  
+directionalLight.position.set(0, -20, 0); // 设置光源位置  
+directionalLight.castShadow = true; // 启用阴影投射  
+scene.add(directionalLight);  
+
+ 
+ 
+function initSkyWater(){
+const sky = new Sky();
+sky.scale.setScalar(100000);
+scene.add(sky);
+const skyUniforms = sky.material.uniforms;
+skyUniforms['turbidity'].value = 10;
+skyUniforms['rayleigh'].value = 2;
+skyUniforms['mieCoefficient'].value = 0.005;
+skyUniforms['mieDirectionalG'].value = 0.8;
+// 太阳
+const sun = new THREE.Vector3();
+const pmremGenerator = new THREE.PMREMGenerator(renderer);
+const phi = THREE.MathUtils.degToRad(88);
+const theta = THREE.MathUtils.degToRad(180);
+sun.setFromSphericalCoords(1, phi, theta);
+sky.material.uniforms['sunPosition'].value.copy(sun);
+scene.environment = pmremGenerator.fromScene(sky).texture;
+
+      let waterGeometry = new THREE.PlaneGeometry( 400, 400 );
+      water = new Water(
+        waterGeometry,
+        {
+          textureWidth: 200,
+          textureHeight: 200,
+          waterNormals: new THREE.TextureLoader().load('https://techbrood.com/threejs/examples/textures/waternormals.jpg', ( texture )=> {
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+          } ),
+          alpha: 1.0,
+          sunColor: 0xffffff,
+          waterColor: 0x001e0f,
+          distortionScale: 1,
+          side: THREE.DoubleSide
+        }
+      );
+      water.rotation.x = - Math.PI / 2;
+      water.position.y = -5;
+      scene.add( water );
+  }
+initSkyWater();
+
+function aduck(){
+const mtlLoader = new MTLLoader();  
+const objLoader = new OBJLoader();
+mtlLoader.load('./bird/12248_Bird_v1_L2.mtl', function(materials) {  
+    // materials 是一个包含所有材质的Map对象  
+    // 现在可以使用这些材质来加载.obj文件  
+    objLoader.setMaterials(materials); // 设置OBJLoader使用的材质  
+});
+objLoader.load('./bird/12248_Bird_v1_L2.obj', function(duck1) {  
+    duck = duck1;
+    // object 是加载的3D模型  
+    duck.scale.set(0.005, 0.005, 0.005);
+    duck.position.set(1, 5, 1);
+    duck.rotation.set(1.5*Math.PI, 0, Math.PI);//绕x轴旋转
+    scene.add(duck); // 将模型添加到场景中  
+}, undefined, function(error) {  
+    console.error(error);  
+});
+}
+aduck();
+
+function trees(x = 5, y = 5, z = 5){
+const mtlLoader = new MTLLoader();  
+const objLoader = new OBJLoader();
+mtlLoader.load('./tree/Tree.mtl', function(materials) {  
+    // materials 是一个包含所有材质的Map对象  
+    // 现在可以使用这些材质来加载.obj文件  
+    objLoader.setMaterials(materials); // 设置OBJLoader使用的材质  
+});
+objLoader.load('./tree/Tree.obj', function(tree) {  
+    tree.position.set(x, y, z);
+    scene.add(tree); // 将模型添加到场景中  
+}, undefined, function(error) {  
+    console.error(error);  
+});
+}
+trees(Math.random() * 10, Math.random() * 10, Math.random() * 10);
 
 function cloud(){
 // 加载纹理  
@@ -211,22 +282,6 @@ for (let i = 0; i < numImages; i++) {
 }
 cloud();
 
-(function() {
-// 创建一个球体几何体
-const geometry = new THREE.SphereGeometry(WIDTH / 2, 32, 32);
-
-// 加载纹理  
-const textureLoader = new THREE.TextureLoader();  
-const texture = textureLoader.load('https://img.moeyy.xyz/file/75341ff6d1c31ccb9eab7.jpg'); // 替换为你的图片路径  
-// 创建材质
-const material = new THREE.MeshBasicMaterial({map: texture, side: THREE.DoubleSide});
-
-// 使用几何体和材质创建球体
-const sphere = new THREE.Mesh(geometry, material);
-
-// 将球体添加到场景中
-scene.add(sphere);
-})()
 const shape = new CANNON.Box(new CANNON.Vec3(1, 1, 1)); // 假设摄像机是一个立方体  
 const mass = 1; // 设置质量  
 const body = new CANNON.Body({ mass: mass });  
@@ -320,7 +375,7 @@ controls2.enablePan = false; // 允许平移
                   var clock = new THREE.Clock();
                     // 渲染循环  
                     function animate() {  
-
+water.material.uniforms[ 'time' ].value += 1.0 / 120.0;
     controls.update(clock.getDelta());
     controls2.update(clock.getDelta());
 BoxFollow();
@@ -350,14 +405,16 @@ BoxFollow();
                     camera.updateProjectionMatrix();  
                     renderer.setSize(window.innerWidth, window.innerHeight);  
                 }  
-        
+
         function BoxFollow() {
         const dir = new THREE.Vector3();  
         camera.getWorldDirection(dir);  
         const newPosition = camera.position.clone().add(dir.clone().multiplyScalar(0.4)); 
         newPosition.y -= 0.25;  
         // 设置cube的位置为计算出的新位置  
-        cube.position.copy(newPosition);
+        if (duck) {duck.position.copy(newPosition);
+    duck.rotation.set(1.5*Math.PI, 0, camera.rotation.y + Math.PI);
+        }
         newPosition.y += 0.25;  
         controls2.target = newPosition; 
         }
