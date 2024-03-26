@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zn-cn">
 
 <head>
     <meta charset="UTF-8">
@@ -220,7 +220,7 @@ mtlLoader.load('./bird/12248_Bird_v1_L2.mtl', function(materials) {
 objLoader.load('./bird/12248_Bird_v1_L2.obj', function(duck1) {  
     duck = duck1;
     // object 是加载的3D模型  
-    duck.scale.set(0.005, 0.005, 0.005);
+    duck.scale.set(0.003, 0.003, 0.003);
     duck.position.set(1, 5, 1);
     duck.rotation.set(1.5*Math.PI, 0, Math.PI);//绕x轴旋转
     scene.add(duck); // 将模型添加到场景中  
@@ -281,13 +281,6 @@ for (let i = 0; i < numImages; i++) {
 } 
 }
 cloud();
-
-const shape = new CANNON.Box(new CANNON.Vec3(1, 1, 1)); // 假设摄像机是一个立方体  
-const mass = 1; // 设置质量  
-const body = new CANNON.Body({ mass: mass });  
-body.addShape(shape);  
-body.position.set(0, 10, 0); // 设置初始位置  
-world.addBody(body); // 将刚体添加到物理世界中
 
                             let geometry2 = new THREE.BoxGeometry(0.2, 0.2, 0.2);
         const material2 = new THREE.MeshBasicMaterial({ color: 0xff0000, map: texture}); // 使用最基础的材质，颜色设为红色
@@ -380,11 +373,13 @@ water.material.uniforms[ 'time' ].value += 1.0 / 120.0;
     controls2.update(clock.getDelta());
 BoxFollow();
 
-                          // 更新坐标显示  
-            const x = cube.position.x.toFixed(2);  
-            const y = cube.position.y.toFixed(2);  
-            const z = cube.position.z.toFixed(2);  
+if (duck) {
+            // 更新坐标显示  
+            const x = duck.position.x.toFixed(2);  
+            const y = duck.position.y.toFixed(2);  
+            const z = duck.position.z.toFixed(2);  
             document.getElementById('coordinates').textContent = `X: ${x}, Y: ${y}, Z: ${z}`; 
+}
                         requestAnimationFrame(animate);  
                         renderer.render(scene, camera);  
                     }  
@@ -413,7 +408,18 @@ BoxFollow();
         newPosition.y -= 0.25;  
         // 设置cube的位置为计算出的新位置  
         if (duck) {duck.position.copy(newPosition);
-    duck.rotation.set(1.5*Math.PI, 0, camera.rotation.y + Math.PI);
+    // 获取摄像机的旋转四元数  
+    var cameraQuaternion = camera.quaternion;  
+  
+    // 创建一个新的四元数，用于仅提取摄像机的俯仰和偏航旋转  
+    // 这可以通过将摄像机的四元数转换为欧拉角，然后重新设置滚动（roll）为0来实现  
+    var euler = new THREE.Euler().setFromQuaternion(cameraQuaternion, 'YXZ'); // 注意顺序可能是'XYZ', 'YZX'等，取决于你的需求  
+    euler.x = 1.5 * Math.PI; // 设置滚动为0，因为我们不关心它在顶部方向上的影响  
+    euler.z = Math.PI;
+    var duckQuaternion = new THREE.Quaternion().setFromEuler(euler);  
+  
+    // 将提取出的旋转应用到duck上  
+    duck.quaternion.copy(duckQuaternion);  
         }
         newPosition.y += 0.25;  
         controls2.target = newPosition; 
