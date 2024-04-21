@@ -42,19 +42,24 @@
     <script src="./three.min.js" type="module"></script>
     <script src="./noise.js"></script>
     <script src="./cannon.min.js"></script>
+    <script src="https://schteppe.github.io/cannon.js/build/cannon.demo.js"></script>
     <script type="module">
         import { OrbitControls } from './OrbitControls.js';
-        import { FirstPersonControls } from './FirstPersonControls.js';
         import { Water } from './Water.js';
         import { Sky } from './Sky.js';
         import { OBJLoader } from './OBJLoader.js';  
         import { MTLLoader } from './MTLLoader.js';
 
-        let scene, camera, renderer, planeMesh, cube, controls2, controls, terrainMesh, water, duck;  
-                let moveSpeed = 0.1; // 可以调整移动速度  
+        let scene, camera, renderer, planeMesh, cube, controls2, terrainMesh, water, duck, world, landbody, landTerrainMesh, duckBody;  
+const MeshBodyToUpdate = [];
+                let moveSpeed = 1; // 可以调整移动速度  
         
                 let moveForwardInterval, moveBackwardInterval, moveLeftInterval, moveRightInterval, moveDownInterval, moveUpInterval; 
                 
+world = new CANNON.World();
+// 设置物理世界重力加速度
+world.gravity.set(0, -9.8, 0);
+
                 function init() {  
                     // 创建场景  
                     scene = new THREE.Scene(); 
@@ -72,7 +77,7 @@
                       
                     // 加载纹理  
                     const textureLoader = new THREE.TextureLoader();  
-                    const texture = textureLoader.load('https://i.morechatol.eu.org/good.png'); // 替换为你的图片路径  
+                    const texture = textureLoader.load('./good.png'); // 替换为你的图片路径  
                       
                     // 创建平面几何体  
                     const geometry = new THREE.PlaneGeometry(10, 10);  
@@ -84,42 +89,168 @@
                     planeMesh = new THREE.Mesh(geometry, material);  
                     planeMesh.position.set(0, 5, 0);
                     scene.add(planeMesh);  
-        
-const world = new CANNON.World();  
-world.gravity.set(0, -9.81, 0); // 设置重力加速度
 
-const WIDTH = 400;  
-const HEIGHT = 400;  
-const SCALE = 30;  
-function generateTerrain() {  
-const simplex = new SimplexNoise();  
-const vertices = []; // 存储顶点位置   
+function createBalls() {
+// 1 创建Cannon中的球体刚体
+// 1.1 创建球体刚体形状，参数为球体的半径
+let cannonSphereShape = new CANNON.Sphere(1)
+// 1.2 创建球体刚体的材质，默认材质
+let cannonSphereMaterial = new CANNON.Material()
+// 1.3 创建球体刚体的质量mass，单位为kg
+let cannonSphereMass = 1
+// 1.4 创建球体刚体的位置position
+let cannonSpherePosition = duck.position
+// 1.5 创建球体刚体的Body
+let cannonSphereBody = new CANNON.Body({
+  mass: cannonSphereMass,
+  shape: cannonSphereShape,
+  position: cannonSpherePosition,
+  material: cannonSphereMaterial,
+})
+// 1.6 将cannonSphereBody添加到物理场景world中
+world.addBody(cannonSphereBody);
+
+
+
+// 2 创建Three中的球体网格
+// 2.1 创建球体网格的形状
+let threeSphereGeometry = new THREE.SphereGeometry(1, 32, 32)
+// 2.2 创建球体网格的材质
+let threeSphereMaterial = new THREE.MeshStandardMaterial({
+  color: 0xFFB6C1,
+})
+// 2.3 创建球体网格的Mesh
+let threeSphereMesh = new THREE.Mesh(
+  threeSphereGeometry,
+  threeSphereMaterial
+)
+// 2.4 设置球体网格投射光照阴影
+threeSphereMesh.castShadow = true
+// 2.5 将threeSphereMesh添加到Three场景的scene中
+scene.add(threeSphereMesh)
+
+MeshBodyToUpdate.push({
+  body: cannonSphereBody,
+  mesh: threeSphereMesh,
+})
+
+}
+
+document.body.addEventListener("click", createBalls);
+
+function aduck(){
+const mtlLoader = new MTLLoader();  
+const objLoader = new OBJLoader();
+mtlLoader.load('./bird/12248_Bird_v1_L2.mtl', function(materials) {  
+    // materials 是一个包含所有材质的Map对象  
+    // 现在可以使用这些材质来加载.obj文件  
+    objLoader.setMaterials(materials); // 设置OBJLoader使用的材质  
+});
+
+const scaleFactor = 0.03;
+  objLoader.load('./bird/12248_Bird_v1_L2.obj', function(duckModel) {  
+    duck = duckModel;  
+    duck.scale.set(scaleFactor, scaleFactor, scaleFactor);  
+    duck.position.set(1, 10, 1); // 初始位置  
+    duck.rotation.set(1.5 * Math.PI, 0, Math.PI); // 初始旋转  
+  
+
+// 1 创建Cannon中的球体刚体
+// 1.2 创建球体刚体的材质，默认材质
+let cannonMaterial = new CANNON.Material()
+cannonMaterial.friction = 0.7; // 例如，设置为0.5，您可以根据需要调整这个值  
+// 1.3 创建球体刚体的质量mass，单位为kg
+let cannonSphereMass = 5
+// 1.4 创建球体刚体的位置position
+let cannonSpherePosition = duck.position
+// 1.5 创建球体刚体的Body
+duckBody = new CANNON.Body({
+  mass: cannonSphereMass,
+  shape: new CANNON.Sphere(1),
+  position: cannonSpherePosition,
+  material: cannonMaterial,
+})
+
+duckBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -1.5707963267948966)
+
+// 1.6 将cannonSphereBody添加到物理场景world中
+world.addBody(duckBody);
+
+    scene.add(duck); // 将模型添加到Three.js场景  
+
+    MeshBodyToUpdate.push({
+      body: duckBody,
+      mesh: duck,
+      rotation: false
+    })  
+  }, undefined, function(error) {  
+    console.error(error);  
+  });  
+
+}
+
+function generateTerrain() { 
 const indices = []; // 存储索引  
+const simplexNoise = new SimplexNoise();  
   
-for (let x = 0; x < WIDTH; x++) {  
-    for (let z = 0; z < HEIGHT; z++) {  
-        const noise = simplex.noise2D(x / SCALE, z / SCALE);  
-        const y = noise * 10 + 5; // 根据噪声计算高度  
+// 设定地形的尺寸和参数  
+const width = 200;  
+const depth = 200;  
+const octaves = 3; // 噪声层数  
+const persistence = 0.5; // 每层噪声的衰减率  
+const lacunarity = 2.0; // 每层噪声频率的缩放比例  
+const baseFrequency = 0.01; // 基础噪声频率  
+const amplitude = 8; // 噪声值的振幅  
+const scale = 50; // 噪声值的缩放因子  
+const smoothing = 0.03; // 平滑因子  
+const elementSize = 4;  
+const vertices = [];  
   
-        // 将顶点位置添加到vertices数组  
-        vertices.push(x, y, z);  
-    } 
+let totalAmplitude = 0;  
+for (let i = 0; i < octaves; i++) {  
+    totalAmplitude += Math.pow(persistence, i);  
 }  
   
+for (let z = 0; z < depth; z++) {  
+    for (let x = 0; x < width; x++) {  
+        let noiseValue = 0;  
+        let currentFrequency = baseFrequency;  
+        let currentAmplitude = amplitude;  
+  
+        for (let i = 0; i < octaves; i++) {  
+            noiseValue += simplexNoise.noise2D(x * currentFrequency, z * currentFrequency) * currentAmplitude;  
+            currentFrequency *= lacunarity;  
+            currentAmplitude *= persistence;  
+        }  
+  
+        // 归一化噪声值  
+        noiseValue /= totalAmplitude;  
+  
+        // 应用平滑处理  
+        const smoothNoiseValue = noiseValue * (1 - smoothing) + (simplexNoise.noise2D(x * currentFrequency * 2, z * currentFrequency * 2) * smoothing);  
+  
+        // 根据噪声计算高度，并加入一些偏移和缩放  
+        const y = (smoothNoiseValue + 0.5) * amplitude * 2;  
+  
+        vertices.push(x * elementSize, y, z * elementSize);  
+    }  
+} 
+  
+
 // 创建索引以定义地形网格的三角形  
-for (let x = 0; x < WIDTH - 1; x++) {  
-    for (let z = 0; z < HEIGHT - 1; z++) {  
-        const a = x * HEIGHT + z;  
-        const b = x * HEIGHT + z + 1;  
-        const c = (x + 1) * HEIGHT + z;  
-        const d = (x + 1) * HEIGHT + z + 1;  
+for (let x = 0; x < width - 1; x++) {  
+    for (let z = 0; z < depth - 1; z++) {  
+        const a = x * depth + z;  
+        const b = x * depth + z + 1;  
+        const c = (x + 1) * depth + z;  
+        const d = (x + 1) * depth + z + 1;  
   
         // 两个三角形共享两个顶点  
         indices.push(a, b, d);  
         indices.push(a, d, c);  
     }  
 }  
-  
+
 // 创建BufferGeometry  
 const geometry = new THREE.BufferGeometry();  
   
@@ -137,15 +268,42 @@ const material = new THREE.MeshPhongMaterial({
     vertexColors: THREE.VertexColors, // 使用顶点颜色渲染  
     side: THREE.DoubleSide
 });  
-  
-// 创建地形网格  
-const terrainMesh = new THREE.Mesh(geometry, material);  
-  
-terrainMesh.position.set(-(WIDTH/2), -10, -(WIDTH/2));
 
-// 将地形网格添加到场景中  
-scene.add(terrainMesh);
-}
+// 创建地形网格  
+landTerrainMesh = new THREE.Mesh(geometry, material);  
+
+// 将地形网格添加到场景中
+scene.add(landTerrainMesh);
+
+const trimeshShape = new CANNON.Trimesh(  
+    vertices,   
+    indices
+);
+
+const concreteMaterial = new CANNON.Material('concrete') //创建混凝土材质
+
+const terrainBody = new CANNON.Body({  
+    mass: 0, // 地形通常是静态的，所以质量设置为0  
+    shape: trimeshShape,  
+    position: new CANNON.Vec3(-width / 2 * elementSize, -3, -width / 2 * elementSize), // 设置地形的初始位置  
+    material: concreteMaterial
+});  
+world.addBody(terrainBody);
+console.log(terrainBody)
+MeshBodyToUpdate.push({
+  body: terrainBody,
+  mesh: landTerrainMesh,
+})
+const planeBody = new CANNON.Body({  
+    mass: 0, // 地形通常是静态的，所以质量设置为0  
+    shape: new CANNON.Plane(),  
+    position: new CANNON.Vec3(0, -6, 0), // 设置地形的初始位置  
+});  
+planeBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -1.5707963267948966)
+world.addBody(planeBody);
+aduck();
+}  
+  
 generateTerrain();
 
 // 设置渲染器的阴影映射属性  
@@ -167,8 +325,6 @@ directionalLight.position.set(0, -20, 0); // 设置光源位置
 directionalLight.castShadow = true; // 启用阴影投射  
 scene.add(directionalLight);  
 
- 
- 
 function initSkyWater(){
 const sky = new Sky();
 sky.scale.setScalar(100000);
@@ -191,8 +347,8 @@ scene.environment = pmremGenerator.fromScene(sky).texture;
       water = new Water(
         waterGeometry,
         {
-          textureWidth: 200,
-          textureHeight: 200,
+          textureWidth: 1200,
+          textureHeight: 1200,
           waterNormals: new THREE.TextureLoader().load('https://techbrood.com/threejs/examples/textures/waternormals.jpg', ( texture )=> {
             texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
           } ),
@@ -208,27 +364,6 @@ scene.environment = pmremGenerator.fromScene(sky).texture;
       scene.add( water );
   }
 initSkyWater();
-
-function aduck(){
-const mtlLoader = new MTLLoader();  
-const objLoader = new OBJLoader();
-mtlLoader.load('./bird/12248_Bird_v1_L2.mtl', function(materials) {  
-    // materials 是一个包含所有材质的Map对象  
-    // 现在可以使用这些材质来加载.obj文件  
-    objLoader.setMaterials(materials); // 设置OBJLoader使用的材质  
-});
-objLoader.load('./bird/12248_Bird_v1_L2.obj', function(duck1) {  
-    duck = duck1;
-    // object 是加载的3D模型  
-    duck.scale.set(0.003, 0.003, 0.003);
-    duck.position.set(1, 5, 1);
-    duck.rotation.set(1.5*Math.PI, 0, Math.PI);//绕x轴旋转
-    scene.add(duck); // 将模型添加到场景中  
-}, undefined, function(error) {  
-    console.error(error);  
-});
-}
-aduck();
 
 function trees(x = 5, y = 5, z = 5){
 const mtlLoader = new MTLLoader();  
@@ -257,25 +392,25 @@ texture.transparent = true; // 启用透明
 const material = new THREE.MeshBasicMaterial({  
     map: texture,  
     transparent: true, // 启用透明  
-    side: THREE.DoubleSide // 双面渲染  
+    side: THREE.DoubleSide, // 双面渲染  
+    logarithmicDepthBuffer:true
 });  
-  
-// 创建平面网格  
-const planeGeometry = new THREE.PlaneGeometry(60, 50); // 你可以调整平面的大小  
   
 // 添加十张图片到随机位置  
 const numImages = 20;  
 for (let i = 0; i < numImages; i++) {  
+// 创建平面网格  
+const planeGeometry = new THREE.PlaneGeometry(Math.random() * 200, Math.random() * 180); // 你可以调整平面的大小  
     const plane = new THREE.Mesh(planeGeometry, material);  
   
     // 生成随机位置  
-    const randomX = Math.random() * 200 - 100; // 假设场景在-50到50的x范围内  
-    const randomY = Math.random() * (100 - 40) + 40; // 假设场景在40到60的y范围内  
-    const randomZ = Math.random() * 200 - 100; // 假设场景在-50到50的z范围内  
+    const randomX = Math.random() * 1000 - 500; // 假设场景在-50到50的x范围内  
+    const randomY = Math.random() * (200 - 40) + 100; // 假设场景在40到60的y范围内  
+    const randomZ = Math.random() * 1000 - 500; // 假设场景在-50到50的z范围内  
     plane.position.set(randomX, randomY, randomZ);  
 
     // 如果需要，可以旋转网格以获得不同的角度  
-    plane.rotation.y = Math.random() * 2;  
+    plane.rotation.y = Math.random();  
     // 添加到场景  
     scene.add(plane);  
 } 
@@ -293,8 +428,6 @@ cloud();
           window.requestAnimationFrame(tick);
         };
 
-        controls = new FirstPersonControls(camera, renderer.domElement);
-        controls.activeLook = false;
         controls2 = new OrbitControls(camera, renderer.domElement);
 controls2.enableZoom = false; // 允许缩放  
 controls2.enableRotate = true; // 允许旋转  
@@ -303,6 +436,98 @@ controls2.enablePan = false; // 允许平移
         BoxFollow();
 
                   
+        let keys = {  
+          w: false,  
+          a: false,  
+          s: false,  
+          d: false,  
+          Shift: false,  
+          ' ': false  
+        };  
+          
+        document.addEventListener('keydown', function(event) {  
+          switch (event.key) {  
+            case 'w':  
+              if (!keys.w) {  
+                keys.w = true;  
+                startMovingForward();  
+              }  
+              break; // 添加break语句  
+            case 'a':  
+              if (!keys.a) {  
+                keys.a = true;  
+                startMovingLeft();  
+              }  
+              break; // 添加break语句  
+            case 's':  
+              if (!keys.s) {  
+                keys.s = true;  
+                startMovingBackward();  
+              }  
+              break; // 添加break语句  
+            case 'd':  
+              if (!keys.d) {  
+                keys.d = true;  
+                startMovingRight();  
+              }  
+              break; // 添加break语句  
+            case 'Shift':  
+              if (!keys.Shift) {  
+                keys.Shift = true;  
+                startMovingDown();  
+              }  
+              break; // 添加break语句  
+            case ' ':  
+              if (!keys[' ']) {  
+                keys[' '] = true;  
+                startMovingUp();  
+              }  
+              break; // 添加break语句  
+          }  
+        });  
+          
+        document.addEventListener('keyup', function(event) {  
+          switch (event.key) {  
+            case 'w':  
+              if (keys.w) {  
+                keys.w = false;  
+                stopMovingForward(); // 假设有一个与startMovingForward对应的stop函数  
+              }  
+              break; // 添加break语句  
+            case 'a':  
+              if (keys.a) {  
+                keys.a = false;  
+                stopMovingLeft(); // 假设有一个与startMovingLeft对应的stop函数  
+              }  
+              break; // 添加break语句  
+            case 's':  
+              if (keys.s) {  
+                keys.s = false;  
+                stopMovingBackward(); // 假设有一个与startMovingBackward对应的stop函数  
+              }  
+              break; // 添加break语句  
+            case 'd':  
+              if (keys.d) {  
+                keys.d = false;  
+                stopMovingRight(); // 假设有一个与startMovingRight对应的stop函数  
+              }  
+              break; // 添加break语句  
+            case 'Shift':  
+              if (keys.Shift) {  
+                keys.Shift = false;  
+                stopMovingDown(); // 假设有一个与startMovingDown对应的stop函数  
+              }  
+              break; // 添加break语句  
+            case ' ':  
+              if (keys[' ']) {  
+                keys[' '] = false;  
+                stopMovingUp(); // 假设有一个与startMovingUp对应的stop函数  
+              }  
+              break; // 添加break语句  
+          }  
+        });
+
+
                     // 绑定按钮事件  
                     document.getElementById('forward').addEventListener('mousedown', startMovingForward);  
                     document.getElementById('forward').addEventListener('mouseup', stopMovingForward);  
@@ -367,18 +592,28 @@ controls2.enablePan = false; // 允许平移
      
                   var clock = new THREE.Clock();
                     // 渲染循环  
-                    function animate() {  
+                    function animate() { 
+for (const object of MeshBodyToUpdate) {
+  object.mesh.position.copy(object.body.position) // 位置同步
+    if (object.rotation) {
+      object.mesh.quaternion.copy(object.body.quaternion) // 旋转方向同步
+    }
+}
+
+    world.step(1/60); 
 water.material.uniforms[ 'time' ].value += 1.0 / 120.0;
-    controls.update(clock.getDelta());
     controls2.update(clock.getDelta());
 BoxFollow();
 
 if (duck) {
             // 更新坐标显示  
-            const x = duck.position.x.toFixed(2);  
-            const y = duck.position.y.toFixed(2);  
-            const z = duck.position.z.toFixed(2);  
-            document.getElementById('coordinates').textContent = `X: ${x}, Y: ${y}, Z: ${z}`; 
+            const x = camera.position.x.toFixed(2);  
+            const y = camera.position.y.toFixed(2);  
+            const z = camera.position.z.toFixed(2);  
+            if (duckBody) {const x2 = duck.position.x.toFixed(2);  
+            const y2 = duck.position.y.toFixed(2);  
+            const z2 = duck.position.z.toFixed(2);  
+            document.getElementById('coordinates').textContent = `X: ${x} | ${x2}, Y: ${y} | ${y2}, Z: ${z} | ${z2}`; }
 }
                         requestAnimationFrame(animate);  
                         renderer.render(scene, camera);  
@@ -407,7 +642,7 @@ if (duck) {
         const newPosition = camera.position.clone().add(dir.clone().multiplyScalar(0.4)); 
         newPosition.y -= 0.25;  
         // 设置cube的位置为计算出的新位置  
-        if (duck) {duck.position.copy(newPosition);
+        if (duck) {
     // 获取摄像机的旋转四元数  
     var cameraQuaternion = camera.quaternion;  
   
