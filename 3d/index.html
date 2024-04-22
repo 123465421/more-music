@@ -9,10 +9,7 @@
     <style>
         body { margin: 0; }  
         canvas { display: block; }  
-        #controls { position: absolute; bottom: 30px; left: 30px; }  button{width:60px;height:60px;user-select:none;}
-    </style>
-
-    <style>
+        #controls { position: absolute; bottom: 30px; left: 30px; }  .ctrlButton{width:60px;height:60px;user-select:none;}
         #coordinates {  
             position: absolute;  
             top: 10px;  
@@ -29,20 +26,20 @@
 
 <body>
     <div id="controls">
-        <button id="forward" style="position:absolute;bottom:60px;left:60px;">前进</button>
-        <button id="backward" style="position:absolute;left:60px;">后退</button>
-        <button id="left">左移</button>
-        <button id="right" style="position:absolute;left:120px;">右移</button>
+        <button id="forward" class="ctrlButton" style="position:absolute;bottom:60px;left:60px;">前进</button>
+        <button id="backward" class="ctrlButton" style="position:absolute;left:60px;">后退</button>
+        <button id="left" class="ctrlButton">左移</button>
+        <button id="right" class="ctrlButton" style="position:absolute;left:120px;">右移</button>
         <div style="position:fixed;bottom:120px;right:0px;">
-            <button id="up" style="position:absolute;right:10px;bottom:-40px;">上移</button>
-            <button id="down" style="position:absolute;right:10px;bottom:-100px;">下移</button>
-
+            <button id="up" class="ctrlButton" style="position:absolute;right:10px;bottom:-40px;">上移</button>
+            <button id="down" class="ctrlButton" style="position:absolute;right:10px;bottom:-100px;">下移</button>
         </div>
     </div>
     <div id="coordinates"></div>
     <script src="./three.min.js" type="module"></script>
     <script src="./noise.js"></script>
     <script src="./cannon.min.js"></script>
+    <script src="./jquery.js"></script>
     <script src="https://schteppe.github.io/cannon.js/build/cannon.demo.js"></script>
     <script type="module">
         import { OrbitControls } from './OrbitControls.js';
@@ -91,7 +88,11 @@ world.gravity.set(0, -9.8, 0);
                     planeMesh.position.set(0, 5, 0);
                     scene.add(planeMesh);  
 
+var createBallsBool=true;
 function createBalls() {
+setTimeout(function () {createBallsBool=true;}, 500);
+if (!createBallsBool) {return;}
+createBallsBool=!createBallsBool;
 // 1 创建Cannon中的球体刚体
 // 1.1 创建球体刚体形状，参数为球体的半径
 let cannonSphereShape = new CANNON.Sphere(1)
@@ -236,7 +237,7 @@ for (let z = 0; z < depth; z++) {
   
         vertices.push(x * elementSize, y, z * elementSize);  
 
-if (z == 0&&z == x) {trees(0, 2*y, 0);
+if (z == 1&&z == x) {trees(0, 2*y, 0);
 console.log(0, 2*y, 0);}
     }  
 } 
@@ -308,7 +309,7 @@ const planeBody = new CANNON.Body({
     material: planMaterial
 });  
 planMaterial.friction = 0.7;
-planeBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -1.5707963267948966)
+planeBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -1.5707963267948966);
 world.addBody(planeBody);
 aduck();
 }  
@@ -438,7 +439,8 @@ cloud();
         };
 
         controls2 = new OrbitControls(camera, renderer.domElement);
-controls2.enableZoom = false; // 允许缩放  
+controls2.enableZoom = true; // 允许缩放  
+controls2.zoomSpeed = 10;
 controls2.enableRotate = true; // 允许旋转  
 controls2.enablePan = false; // 允许平移  
 
@@ -614,16 +616,26 @@ water.material.uniforms[ 'time' ].value += 1.0 / 120.0;
     controls2.update(clock.getDelta());
 BoxFollow();
 
-if (duck) {
+    if (duck) {
             // 更新坐标显示  
             const x = camera.position.x.toFixed(2);  
             const y = camera.position.y.toFixed(2);  
             const z = camera.position.z.toFixed(2);  
-            if (duckBody) {const x2 = duck.position.x.toFixed(2);  
+            const x2 = duck.position.x.toFixed(2);  
             const y2 = duck.position.y.toFixed(2);  
             const z2 = duck.position.z.toFixed(2);  
-            document.getElementById('coordinates').textContent = `X: ${x} | ${x2}, Y: ${y} | ${y2}, Z: ${z} | ${z2}`; }
-}
+            document.getElementById('coordinates').textContent = `X: ${x} | ${x2}, Y: ${y} | ${y2}, Z: ${z} | ${z2}`; 
+            if (Math.abs(x2) > 600 || Math.abs(y2) > 600 || Math.abs(z2) > 600 || Math.abs(x) > 2000 || Math.abs(y) > 2000 || Math.abs(z) > 2000) {
+                duckBody.position.set(0, 20, 0);
+                camera.position.set(0, 0, 5);
+                stopMove();
+                document.getElementById('coordinates').textContent = `X: ${x} | ${x2}, Y: ${y} | ${y2}, Z: ${z} | ${z2}`; 
+            } else if (Math.abs(x2) > 500 || Math.abs(y2) > 500 || Math.abs(z2) > 500 || Math.abs(x) > 1800 || Math.abs(y) > 1800 || Math.abs(z) > 1800) {
+                document.getElementById('coordinates').textContent = `X: ${x} | ${x2}, Y: ${y} | ${y2}, Z: ${z} | ${z2} 😡😡😡😡爬回去😡😡😡😡`; 
+            } else {
+                document.getElementById('coordinates').textContent = `X: ${x} | ${x2}, Y: ${y} | ${y2}, Z: ${z} | ${z2}`; 
+            }
+    }
                         requestAnimationFrame(animate);  
                         renderer.render(scene, camera);  
                     }  
@@ -632,7 +644,18 @@ if (duck) {
                     // 窗口大小改变时更新相机和渲染器  
                     window.addEventListener('resize', onWindowResize, false);  
                 }  
-                  
+              
+let canmove = true;    
+function stopMove() {
+                canmove = false;
+                stopMovingForward();
+                stopMovingBackward();
+                stopMovingLeft();
+                stopMovingRight();
+                stopMovingDown();
+                stopMovingUp();
+}
+
                 function moveCamera(x, y, z) {  
                     camera.position.x += x;  
                     camera.position.y += y;  
@@ -669,7 +692,8 @@ if (duck) {
         controls2.target = newPosition; 
         }
                 function startMovingForward() {  
-                    moveForwardInterval = setInterval(function(){const dir = new THREE.Vector3();
+canmove = true;  
+                    moveForwardInterval = setInterval(function(){if (!canmove){return;}const dir = new THREE.Vector3();
         // 获取相机的视线方向
         camera.getWorldDirection(dir);
         // dis向量表示相机沿着相机视线方向平移的位移量
@@ -679,7 +703,8 @@ if (duck) {
                 }  
                   
                 function startMovingBackward() {  
-                    moveBackwardInterval = setInterval(function(){const dir = new THREE.Vector3();
+canmove = true;  
+                    moveBackwardInterval = setInterval(function(){if (!canmove){return;}const dir = new THREE.Vector3();
         // 获取相机的视线方向
         camera.getWorldDirection(dir);
         const dis = dir.clone().multiplyScalar(-moveSpeed);  
@@ -694,28 +719,32 @@ if (duck) {
         }  
           
                 function startMovingLeft() {  
+canmove = true;  
                   const dir = new THREE.Vector3();  
         camera.getWorldDirection(dir);  
         const left = computeLeftVector(dir, up);  
-                    moveLeftInterval = setInterval(function(){const dis = left.clone().multiplyScalar(moveSpeed);  
+                    moveLeftInterval = setInterval(function(){if (!canmove){return;}const dis = left.clone().multiplyScalar(moveSpeed);  
             camera.position.add(dis);BoxFollow();}, 10);  
                 }  
                   
         const up = new THREE.Vector3(0, 1, 0);
                 function startMovingRight() {  
+canmove = true;  
         const dir = new THREE.Vector3();  
         camera.getWorldDirection(dir);  
         const left = computeLeftVector(dir, up);  
-                    moveRightInterval = setInterval(function(){const dis = left.clone().multiplyScalar(-moveSpeed);  
+                    moveRightInterval = setInterval(function(){if (!canmove){return;}const dis = left.clone().multiplyScalar(-moveSpeed);  
             camera.position.add(dis);BoxFollow();}  , 10);  
                 }  
                   
                 function startMovingDown() {  
-                    moveDownInterval = setInterval(function(){moveCamera(0, -moveSpeed, 0);BoxFollow();}, 10);  
+canmove = true;  
+                    moveDownInterval = setInterval(function(){if (!canmove){return;}moveCamera(0, -moveSpeed, 0);BoxFollow();}, 10);  
                 }  
         
                 function startMovingUp() {  
-                    moveUpInterval = setInterval(function(){moveCamera(0, moveSpeed, 0);BoxFollow();}, 10);  
+canmove = true;  
+                    moveUpInterval = setInterval(function(){if (!canmove){return;}moveCamera(0, moveSpeed, 0);BoxFollow();}, 10);  
                 }  
         
                 function stopMovingForward() {
