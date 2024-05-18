@@ -13,7 +13,7 @@
         #coordinates {  
             position: absolute;  
             top: 10px;  
-            left: 10px;  
+            right: 10px;  
             color: white; /* 或者你想要的任何颜色 */  
             font-family: Arial, sans-serif;  
             background-color: rgba(0, 0, 0, 0.5); /* 半透明背景，以便在深色画布上看得更清楚 */  
@@ -38,9 +38,10 @@
     <div id="coordinates"></div>
     <script src="./three.min.js" type="module"></script>
     <script src="./noise.js"></script>
-    <script src="./cannon.min.js"></script>
+    <script src="./ammo.js"></script>
     <script src="./jquery.js"></script>
-    <script src="https://schteppe.github.io/cannon.js/build/cannon.demo.js"></script>
+    <script src="./Stats.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
     <script type="module">
         import { OrbitControls } from './OrbitControls.js';
         import { Water } from './Water.js';
@@ -48,20 +49,111 @@
         import { OBJLoader } from './OBJLoader.js';  
         import { MTLLoader } from './MTLLoader.js';
 
-        let scene, camera, renderer, planeMesh, cube, controls2, terrainMesh, water, duck, world, landbody, landTerrainMesh, duckBody;  
+        let scene, camera, renderer, planeMesh, cube, controls2, terrainMesh, water, duck, landbody, landTerrainMesh, duckBody, concreteMaterial, physicsWorld, dispatcher, stats;  
 const MeshBodyToUpdate = [];
+const MeshBodyToUpdate2 = [];
                 let moveSpeed = 1; // 可以调整移动速度  
         
                 let moveForwardInterval, moveBackwardInterval, moveLeftInterval, moveRightInterval, moveDownInterval, moveUpInterval; 
                 
-world = new CANNON.World();
-// 设置物理世界重力加速度
-world.gravity.set(0, -9.8, 0);
+var gui = new dat.GUI();
+gui.domElement.style.position = "relative";
+gui.domElement.style.top = "50px";
+var guiItem = gui.addFolder('three.js选项');
+
+Ammo().then(function(){init();})
+//-- 物理世界变量
+const gravityConstant = - 9.8;
+function initPhysics() {
+const collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();  
+const dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration);  
+const broadphase = new Ammo.btDbvtBroadphase();  
+const solver = new Ammo.btSequentialImpulseConstraintSolver(); // 只需要一个求解器  
+  
+// 注意：btDiscreteDynamicsWorld 不需要 softBodySolver  
+physicsWorld = new Ammo.btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);  
+  
+// 设置重力  
+const gravityConstant = -9.8; // 例如，地球的重力加速度  
+const gravity = new Ammo.btVector3(0, gravityConstant, 0);  
+physicsWorld.setGravity(gravity); // 使用 setGravity 方法来设置重力  
+// 创建地面
+(function(){
+// 创建平面位置和旋转的变换  
+const planeTransform = new Ammo.btTransform();  
+planeTransform.setIdentity();  
+planeTransform.setOrigin(new Ammo.btVector3(0, -6, 0)); // 设置平面的位置  
+  
+// 创建一个btDefaultMotionState对象  
+const planeMotionState = new Ammo.btDefaultMotionState(planeTransform);  
+  
+// 创建一个碰撞形状，这里我们使用btBoxShape来表示一个矩形平面  
+const planeHalfExtents = new Ammo.btVector3(800, 0.1, 800); // 半尺寸  
+const planeShape = new Ammo.btBoxShape(planeHalfExtents);  
+  
+// 计算局部惯性（对于静态物体，这通常不重要，但某些实现可能要求这样做）  
+const localInertia = new Ammo.btVector3(0, 0, 0);  
+  
+// 创建一个刚体构造信息，质量设置为0表示它是一个静态物体  
+const rbInfo = new Ammo.btRigidBodyConstructionInfo(0, planeMotionState, planeShape, localInertia);  
+  
+// 创建一个刚体并添加到物理世界中  
+const planeBody = new Ammo.btRigidBody(rbInfo);  
+planeBody.setFriction(0.9);
+physicsWorld.addRigidBody(planeBody);  
+ })()
+
+createMeshAndRigidBody();
+}
+
+function createMeshAndRigidBody(position = {x: 0, y: 10, z:0}) {  
+// Ammo.js 物理球体参数  
+const mass = 1;  
+const radius = 1.5;  
+const startTransform = new Ammo.btTransform();  
+startTransform.setIdentity();  
+startTransform.setOrigin(new Ammo.btVector3(position.x, position.y, position.z)); // 设置初始位置  
+
+// 创建碰撞形状  
+const collisionShape = new Ammo.btSphereShape(radius);  
+  
+// 创建刚体构造信息  
+const localInertia = new Ammo.btVector3(0, 0, 0);  
+collisionShape.calculateLocalInertia(mass, localInertia);  
+  
+// 创建刚体  
+const motionState = new Ammo.btDefaultMotionState(startTransform);  
+const rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, collisionShape, localInertia);  
+const body = new Ammo.btRigidBody(rbInfo);  
+  
+// 添加到物理世界  
+physicsWorld.addRigidBody(body);
+
+
+// three.js 场景、相机和渲染器已设置...  
+  
+// 创建球体几何体和材质  
+const textureLoader = new THREE.TextureLoader();  
+const texture = textureLoader.load('./good.png'); // 替换为你的图片路径  
+const geometry = new THREE.SphereGeometry(radius, 48, 48); // 半径、宽度分段、高度分段  
+// 创建材质  
+const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide  });  
+  
+// 创建three.js球体模型  
+const sphereMesh = new THREE.Mesh(geometry, material);  
+  
+// 添加到场景中  
+scene.add(sphereMesh);
+  
+  // 将网格和刚体添加到更新数组中  
+  MeshBodyToUpdate2.push({ mesh: sphereMesh, body: body });  
+}  
 
                 function init() {  
+
                     // 创建场景  
                     scene = new THREE.Scene(); 
-                      
+               
                   var axes = new THREE.AxesHelper( 20 );
                     scene.add(axes);
                     // 创建相机  
@@ -73,6 +165,13 @@ world.gravity.set(0, -9.8, 0);
                     renderer.setSize(window.innerWidth, window.innerHeight);  
                     document.body.appendChild(renderer.domElement);  
                       
+initPhysics();
+
+//创建stats对象
+stats = new Stats();
+//stats.domElement:web页面上输出计算结果,一个div元素，
+document.body.appendChild(stats.domElement);
+
                     // 加载纹理  
                     const textureLoader = new THREE.TextureLoader();  
                     const texture = textureLoader.load('./good.png'); // 替换为你的图片路径  
@@ -88,112 +187,74 @@ world.gravity.set(0, -9.8, 0);
                     planeMesh.position.set(0, 5, 0);
                     scene.add(planeMesh);  
 
-var createBallsBool=true;
-function createBalls() {
-setTimeout(function () {createBallsBool=true;}, 500);
-if (!createBallsBool) {return;}
-createBallsBool=!createBallsBool;
-// 1 创建Cannon中的球体刚体
-// 1.1 创建球体刚体形状，参数为球体的半径
-let cannonSphereShape = new CANNON.Sphere(1)
-// 1.2 创建球体刚体的材质，默认材质
-let cannonSphereMaterial = new CANNON.Material()
-// 1.3 创建球体刚体的质量mass，单位为kg
-let cannonSphereMass = 20
-// 1.4 创建球体刚体的位置position
-let cannonSpherePosition = duck.position
-// 1.5 创建球体刚体的Body
-let cannonSphereBody = new CANNON.Body({
-  mass: cannonSphereMass,
-  shape: cannonSphereShape,
-  position: cannonSpherePosition,
-  material: cannonSphereMaterial,
-})
-// 1.6 将cannonSphereBody添加到物理场景world中
-world.addBody(cannonSphereBody);
+function aduck() {
+    const mtlLoader = new MTLLoader();  
+    const objLoader = new OBJLoader();
 
+    mtlLoader.load('./bird/12248_Bird_v1_L2.mtl', function(materials) {  
+        objLoader.setMaterials(materials); // 设置OBJLoader使用的材质  
 
+        const scaleFactor = 0.05;
+        objLoader.load('./bird/12248_Bird_v1_L2.obj', function(duckModel) {  
+            duck = duckModel;  
+            duck.scale.set(scaleFactor, scaleFactor, scaleFactor);  
+            duck.position.set(1, 10, 1); // 初始位置  
+            duck.rotation.set(1.5 * Math.PI, 0, Math.PI); // 初始旋转  
 
-// 2 创建Three中的球体网格
-// 2.1 创建球体网格的形状
-let threeSphereGeometry = new THREE.SphereGeometry(1, 32, 32)
-// 2.2 创建球体网格的材质
-let threeSphereMaterial = new THREE.MeshStandardMaterial({
-  color: 0xFFB6C1,
-})
-// 2.3 创建球体网格的Mesh
-let threeSphereMesh = new THREE.Mesh(
-  threeSphereGeometry,
-  threeSphereMaterial
-)
-// 2.4 设置球体网格投射光照阴影
-threeSphereMesh.castShadow = true
-// 2.5 将threeSphereMesh添加到Three场景的scene中
-scene.add(threeSphereMesh)
+            // 创建鸭子模型的凸包形状
+            const vertices = [];
+            duck.traverse(function(child) {
+                if (child instanceof THREE.Mesh) {
+                    const geometry = child.geometry;
+                    const positions = geometry.attributes.position;
+for (let i = 0; i < positions.count; i++) {
+    // 如果 i 是双数，则跳过当前循环
+    if (i % 10 === 0) {
+        continue;
+    }
 
-MeshBodyToUpdate.push({
-  body: cannonSphereBody,
-  mesh: threeSphereMesh,
-})
+    const vertex = new Ammo.btVector3(
+        positions.getX(i) * scaleFactor,
+        positions.getY(i) * scaleFactor,
+        positions.getZ(i) * scaleFactor
+    );
+    vertices.push(vertex);
+}
+                }
+            });
+            const shape = new Ammo.btConvexHullShape();
+            vertices.forEach(function(vertex) {
+                shape.addPoint(vertex);
+            });
 
-setTimeout(function(){world.removeBody(cannonSphereBody);scene.remove(threeSphereMesh);},2000);
+            // 创建刚体
+            const transform = new Ammo.btTransform();
+            transform.setIdentity();
+            transform.setOrigin(new Ammo.btVector3(1, 10, 1)); // 初始位置
+            const motionState = new Ammo.btDefaultMotionState(transform);
+            const localInertia = new Ammo.btVector3(0, 0, 0);
+            shape.calculateLocalInertia(5, localInertia); // 质量为1
+            const rbInfo = new Ammo.btRigidBodyConstructionInfo(1, motionState, shape, localInertia);
+            duckBody = new Ammo.btRigidBody(rbInfo);
+            duckBody.setFriction(1);
+            duckBody.setRestitution(0);
+
+            // 将刚体添加到物理世界中
+            physicsWorld.addRigidBody(duckBody);
+
+            // 将模型添加到Three.js场景  
+            scene.add(duck); 
+
+            MeshBodyToUpdate2.push({ mesh: duck, body: duckBody }); 
+        }, undefined, function(error) {  
+            console.error(error);  
+        });
+    });
 }
 
-document.body.addEventListener("click", createBalls);
-
-function aduck(){
-const mtlLoader = new MTLLoader();  
-const objLoader = new OBJLoader();
-mtlLoader.load('./bird/12248_Bird_v1_L2.mtl', function(materials) {  
-    // materials 是一个包含所有材质的Map对象  
-    // 现在可以使用这些材质来加载.obj文件  
-    objLoader.setMaterials(materials); // 设置OBJLoader使用的材质  
-});
-
-const scaleFactor = 0.05;
-  objLoader.load('./bird/12248_Bird_v1_L2.obj', function(duckModel) {  
-    duck = duckModel;  
-    duck.scale.set(scaleFactor, scaleFactor, scaleFactor);  
-    duck.position.set(1, 10, 1); // 初始位置  
-    duck.rotation.set(1.5 * Math.PI, 0, Math.PI); // 初始旋转  
-  
-
-// 1 创建Cannon中的球体刚体
-// 1.2 创建球体刚体的材质，默认材质
-let cannonMaterial = new CANNON.Material()
-cannonMaterial.friction = 0.7; // 例如，设置为0.5，您可以根据需要调整这个值  
-// 1.3 创建球体刚体的质量mass，单位为kg
-let cannonSphereMass = 500
-// 1.4 创建球体刚体的位置position
-let cannonSpherePosition = duck.position
-// 1.5 创建球体刚体的Body
-duckBody = new CANNON.Body({
-  mass: cannonSphereMass,
-  shape: new CANNON.Sphere(1),
-  position: cannonSpherePosition,
-  material: cannonMaterial,
-})
-
-duckBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -1.5707963267948966)
-
-// 1.6 将cannonSphereBody添加到物理场景world中
-world.addBody(duckBody);
-
-    scene.add(duck); // 将模型添加到Three.js场景  
-
-    MeshBodyToUpdate.push({
-      body: duckBody,
-      mesh: duck,
-      rotation: false
-    })  
-  }, undefined, function(error) {  
-    console.error(error);  
-  });  
-
-}
 
 function generateTerrain() { 
-const indices = []; // 存储索引  
+let indices = []; // 存储索引  
 const simplexNoise = new SimplexNoise();  
   
 // 设定地形的尺寸和参数  
@@ -207,7 +268,7 @@ const amplitude = 8; // 噪声值的振幅
 const scale = 50; // 噪声值的缩放因子  
 const smoothing = 0.03; // 平滑因子  
 const elementSize = 4;  
-const vertices = [];  
+let vertices = [];  
   
 let totalAmplitude = 0;  
 for (let i = 0; i < octaves; i++) {  
@@ -237,10 +298,12 @@ for (let z = 0; z < depth; z++) {
   
         vertices.push(x * elementSize, y, z * elementSize);  
 
-if (z == 1&&z == x) {trees(0, 2*y, 0);
-console.log(0, 2*y, 0);}
+        // 判断是否在随机位置生成树
+        if (Math.random() < 0.001 && y > 10) { // 这里的0.1表示树生成的概率，你可以根据需要调整
+            trees((x - width / 2) * elementSize, y, (z - depth / 2) * elementSize);console.log(1);
+        }
     }  
-} 
+}
   
 
 // 创建索引以定义地形网格的三角形  
@@ -269,10 +332,32 @@ geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indices), 1));
 // 如果需要，计算法线  
 geometry.computeVertexNormals();  
   
+
+var testObj = {
+    wireframe: false,
+    createBall: function() {
+        createMeshAndRigidBody({x: camera.position.x, y: camera.position.y, z: camera.position.z});
+    }
+};
+
+var controller = guiItem.add(testObj, "wireframe", ['false', 'true']);
+
+// 监听 wireframe 属性的变化
+controller.onChange(function(value) {
+    // 将字符串值转换为布尔值
+    var wireframeValue = (value === 'true');
+
+    // 更新 landTerrainMesh.material.wireframe
+    landTerrainMesh.material.wireframe = wireframeValue;
+});
+
+guiItem.add(testObj, 'createBall').name('Create Ball');
+
 // 创建材质，并启用顶点颜色  
 const material = new THREE.MeshPhongMaterial({  
     vertexColors: THREE.VertexColors, // 使用顶点颜色渲染  
-    side: THREE.DoubleSide
+    side: THREE.DoubleSide,
+    wireframe: testObj.wireframe
 });  
 
 // 创建地形网格  
@@ -281,36 +366,53 @@ landTerrainMesh = new THREE.Mesh(geometry, material);
 // 将地形网格添加到场景中
 scene.add(landTerrainMesh);
 
-const trimeshShape = new CANNON.Trimesh(  
-    vertices,   
-    indices
-);
 
-const concreteMaterial = new CANNON.Material('concrete'); //创建混凝土材质
-concreteMaterial.friction = 0.7;
-const terrainBody = new CANNON.Body({  
-    mass: 0, // 地形通常是静态的，所以质量设置为0  
-    shape: trimeshShape,  
-    position: new CANNON.Vec3(-width / 2 * elementSize, -3, -width / 2 * elementSize), // 设置地形的初始位置  
-    material: concreteMaterial
-});  
-world.addBody(terrainBody);
-console.log(terrainBody)
-MeshBodyToUpdate.push({
-  body: terrainBody,
-  mesh: landTerrainMesh,
-})
 
-const planMaterial = new CANNON.Material('concrete');
-const planeBody = new CANNON.Body({  
-    mass: 0, // 地形通常是静态的，所以质量设置为0  
-    shape: new CANNON.Plane(),  
-    position: new CANNON.Vec3(0, -6, 0), // 设置地形的初始位置  
-    material: planMaterial
-});  
-planMaterial.friction = 0.7;
-planeBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -1.5707963267948966);
-world.addBody(planeBody);
+
+// 创建地形物理形状
+function createTerrainPhysics(vertices, indices) {
+    // 创建三角形网格形状
+    const triangleMesh = new Ammo.btTriangleMesh();
+
+    // 添加三角形
+    for (let i = 0; i < indices.length; i += 3) {
+        const vertex1 = new Ammo.btVector3(vertices[indices[i] * 3], vertices[indices[i] * 3 + 1], vertices[indices[i] * 3 + 2]);
+        const vertex2 = new Ammo.btVector3(vertices[indices[i + 1] * 3], vertices[indices[i + 1] * 3 + 1], vertices[indices[i + 1] * 3 + 2]);
+        const vertex3 = new Ammo.btVector3(vertices[indices[i + 2] * 3], vertices[indices[i + 2] * 3 + 1], vertices[indices[i + 2] * 3 + 2]);
+        triangleMesh.addTriangle(vertex1, vertex2, vertex3, true);
+    }
+
+    // 创建地形物理形状
+    const terrainShape = new Ammo.btBvhTriangleMeshShape(triangleMesh, true, true);
+
+    return terrainShape;
+}
+
+// 在场景中创建地形
+function createTerrain(scene, terrainShape, position) {
+    // 创建地形刚体
+    const groundTransform = new Ammo.btTransform();
+    groundTransform.setIdentity();
+    groundTransform.setOrigin(new Ammo.btVector3(position.x, position.y, position.z));
+    const groundMass = 0;
+    const groundLocalInertia = new Ammo.btVector3(0, 0, 0);
+    const groundMotionState = new Ammo.btDefaultMotionState(groundTransform);
+    const groundBodyInfo = new Ammo.btRigidBodyConstructionInfo(groundMass, groundMotionState, terrainShape, groundLocalInertia);
+    const groundBody = new Ammo.btRigidBody(groundBodyInfo);
+    groundBody.setFriction(0.9);
+    // 添加地形到场景
+    physicsWorld.addRigidBody(groundBody);
+    MeshBodyToUpdate2.push({ mesh: landTerrainMesh, body: groundBody });  
+}
+
+// 使用示例
+let terrainShape = createTerrainPhysics(vertices, indices);
+createTerrain(scene, terrainShape, { x: -width * elementSize / 2, y: 0, z: -depth * elementSize / 2 }); // 设置地形位置
+
+terrainShape = null;
+vertices = null;
+indices = null;
+
 aduck();
 }  
   
@@ -359,7 +461,7 @@ scene.environment = pmremGenerator.fromScene(sky).texture;
         {
           textureWidth: 1200,
           textureHeight: 1200,
-          waterNormals: new THREE.TextureLoader().load('https://techbrood.com/threejs/examples/textures/waternormals.jpg', ( texture )=> {
+          waterNormals: new THREE.TextureLoader().load('./waternormals.jpg', ( texture )=> {
             texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
           } ),
           alpha: 1.0,
@@ -375,22 +477,38 @@ scene.environment = pmremGenerator.fromScene(sky).texture;
   }
 initSkyWater();
 
+var treeModel; // 保存加载的模型
+
 function trees(x = 5, y = 5, z = 5){
-const mtlLoader = new MTLLoader();  
-const objLoader = new OBJLoader();
-mtlLoader.load('./tree/Tree.mtl', function(materials) {  
-    // materials 是一个包含所有材质的Map对象  
-    // 现在可以使用这些材质来加载.obj文件  
-    objLoader.setMaterials(materials); // 设置OBJLoader使用的材质  
-});
-objLoader.load('./tree/Tree.obj', function(tree) {  
-    tree.position.set(x, y, z);
-    scene.add(tree); // 将模型添加到场景中  
-}, undefined, function(error) {  
-    console.error(error);  
-});
+    // 如果模型已经加载，则直接使用
+    if (treeModel) {
+        const treeClone = treeModel.clone();
+        treeClone.scale.set(2, 2, 2);
+        treeClone.position.set(x, y, z);
+        scene.add(treeClone); // 将模型添加到场景中  
+    } else {
+        const mtlLoader = new MTLLoader();  
+        const objLoader = new OBJLoader();
+        
+        mtlLoader.load('./tree/Tree.mtl', function(materials) {  
+            // materials 是一个包含所有材质的Map对象  
+            // 现在可以使用这些材质来加载.obj文件  
+            objLoader.setMaterials(materials); // 设置OBJLoader使用的材质  
+            
+            objLoader.load('./tree/Tree.obj', function(tree) {  
+                treeModel = tree;
+                const treeClone = tree.clone();
+                treeClone.scale.set(2, 2, 2);
+                treeClone.position.set(x, y, z);
+                scene.add(treeClone); // 将模型添加到场景中  
+            }, undefined, function(error) {  
+                console.error(error);  
+            });
+        });
+    }
 }
-trees(Math.random() * 10, Math.random() * 10, Math.random() * 10);
+
+
 
 function cloud(){
 // 加载纹理  
@@ -601,20 +719,35 @@ controls2.enablePan = false; // 允许平移
                     downButton.addEventListener('touchend', stopMovingDown);  
                     downButton.addEventListener('touchcancel', stopMovingDown); 
      
-                  var clock = new THREE.Clock();
-                    // 渲染循环  
-                    function animate() { 
-for (const object of MeshBodyToUpdate) {
-  object.mesh.position.copy(object.body.position) // 位置同步
-    if (object.rotation) {
-      object.mesh.quaternion.copy(object.body.quaternion) // 旋转方向同步
-    }
-}
+let oldElapsedTime = 0
+var clock = new THREE.Clock();
+// 渲染循环  
+function animate() { 
+    stats.update();
+    physicsWorld.stepSimulation( clock.getDelta() , 10 );
 
-    world.step(1/60); 
-water.material.uniforms[ 'time' ].value += 1.0 / 120.0;
+    // 假设MeshBodyToUpdate2是一个包含Three.js Mesh和ammo.js刚体对应关系的数组  
+    for (const object of MeshBodyToUpdate2) {  
+      const pos = object.body.getWorldTransform().getOrigin(); 
+      // 将位置和旋转信息应用到Three.js的Mesh上  
+      object.mesh.position.set(pos.x(), pos.y(), pos.z());
+
+      const ammoTransform = object.body.getWorldTransform().getRotation(); // 返回一个包含位置、旋转和缩放的对象  
+      // 更新three.js mesh的旋转  
+      object.mesh.quaternion.set(
+          ammoTransform.x(),  
+          ammoTransform.y(),  
+          ammoTransform.z(),  
+          ammoTransform.w() // 注意w是最后一个分量，代表实部  
+      );
+    }
+
+    const elapsedTime = clock.getElapsedTime()
+    const deltaTime = elapsedTime - oldElapsedTime
+    oldElapsedTime = elapsedTime
+    water.material.uniforms[ 'time' ].value += 1.0 / 120.0;
     controls2.update(clock.getDelta());
-BoxFollow();
+    BoxFollow();
 
     if (duck) {
             // 更新坐标显示  
@@ -626,7 +759,7 @@ BoxFollow();
             const z2 = duck.position.z.toFixed(2);  
             document.getElementById('coordinates').textContent = `X: ${x} | ${x2}, Y: ${y} | ${y2}, Z: ${z} | ${z2}`; 
             if (Math.abs(x2) > 600 || Math.abs(y2) > 600 || Math.abs(z2) > 600 || Math.abs(x) > 2000 || Math.abs(y) > 2000 || Math.abs(z) > 2000) {
-                duckBody.position.set(0, 20, 0);
+                duckBody.getWorldTransform().setOrigin(0, 10, 0);
                 camera.position.set(0, 0, 5);
                 stopMove();
                 document.getElementById('coordinates').textContent = `X: ${x} | ${x2}, Y: ${y} | ${y2}, Z: ${z} | ${z2}`; 
@@ -636,18 +769,17 @@ BoxFollow();
                 document.getElementById('coordinates').textContent = `X: ${x} | ${x2}, Y: ${y} | ${y2}, Z: ${z} | ${z2}`; 
             }
     }
-                        requestAnimationFrame(animate);  
-                        renderer.render(scene, camera);  
-                    }  
+
+    requestAnimationFrame(animate);  
+    renderer.render(scene, camera);  
+}  
                     animate();  
                       
                     // 窗口大小改变时更新相机和渲染器  
                     window.addEventListener('resize', onWindowResize, false);  
                 }  
-              
-let canmove = true;    
+                
 function stopMove() {
-                canmove = false;
                 stopMovingForward();
                 stopMovingBackward();
                 stopMovingLeft();
@@ -669,42 +801,65 @@ function stopMove() {
                 }  
 
         function BoxFollow() {
-        const dir = new THREE.Vector3();  
-        camera.getWorldDirection(dir);  
-        const newPosition = camera.position.clone().add(dir.clone().multiplyScalar(0.4)); 
-        newPosition.y -= 0.25;  
-        // 设置cube的位置为计算出的新位置  
-        if (duck) {
-    // 获取摄像机的旋转四元数  
-    var cameraQuaternion = camera.quaternion;  
+            const dir = new THREE.Vector3();  
+            camera.getWorldDirection(dir);  
+            const newPosition = camera.position.clone().add(dir.clone().multiplyScalar(0.4)); 
+            newPosition.y -= 0.25; 
+            // 设置cube的位置为计算出的新位置  
+            if (duckBody) {
+              // 获取摄像机的旋转四元数  
+              var cameraQuaternion = camera.quaternion;  
   
-    // 创建一个新的四元数，用于仅提取摄像机的俯仰和偏航旋转  
-    // 这可以通过将摄像机的四元数转换为欧拉角，然后重新设置滚动（roll）为0来实现  
-    var euler = new THREE.Euler().setFromQuaternion(cameraQuaternion, 'YXZ'); // 注意顺序可能是'XYZ', 'YZX'等，取决于你的需求  
-    euler.x = 1.5 * Math.PI; // 设置滚动为0，因为我们不关心它在顶部方向上的影响  
-    euler.z = Math.PI;
-    var duckQuaternion = new THREE.Quaternion().setFromEuler(euler);  
+              // 创建一个新的四元数，用于仅提取摄像机的俯仰和偏航旋转  
+              // 这可以通过将摄像机的四元数转换为欧拉角，然后重新设置滚动（roll）为0来实现  
+              var euler = new THREE.Euler().setFromQuaternion(cameraQuaternion, 'YXZ'); // 注意顺序可能是'XYZ', 'YZX'等，取决于你的需求  
+              euler.x = 1.5 * Math.PI; // 设置滚动为0，因为我们不关心它在顶部方向上的影响  
+              euler.z = Math.PI;
+              var duckQuaternion = new THREE.Quaternion().setFromEuler(euler);  
   
-    // 将提取出的旋转应用到duck上  
-    duck.quaternion.copy(duckQuaternion);  
+              // 将提取出的旋转应用到duck上  
+              duck.quaternion.copy(duckQuaternion);  
+            }
+            newPosition.y += 0.25;  
+            controls2.target = newPosition; 
         }
-        newPosition.y += 0.25;  
-        controls2.target = newPosition; 
-        }
+
                 function startMovingForward() {  
-canmove = true;  
-                    moveForwardInterval = setInterval(function(){if (!canmove){return;}const dir = new THREE.Vector3();
+if (moveForwardInterval) {clearInterval(moveForwardInterval);}
+                    moveForwardInterval = setInterval(function(){const dir = new THREE.Vector3();
         // 获取相机的视线方向
         camera.getWorldDirection(dir);
         // dis向量表示相机沿着相机视线方向平移的位移量
         const dis = dir.clone().multiplyScalar(moveSpeed);
         // 相机沿着视线方向平移
-        camera.position.add(dis);BoxFollow();}, 10);
+        camera.position.add(dis);BoxFollow();
+
+if (!duckBody) return;
+console.log("成功");
+
+// 将视线方向转换为 Ammo.js 的向量
+const force = new Ammo.btVector3(dir.x, dir.y, dir.z);
+
+// 确定力的大小
+const forceMagnitude = 200; // 可以根据需要调整力的大小
+
+// 将力乘以力的大小
+force.op_mul(forceMagnitude);
+
+// 在刚体上施加力
+duckBody.applyCentralForce(force);
+
+// 释放力向量
+Ammo.destroy(force);
+
+
+
+}, 10);
                 }  
                   
                 function startMovingBackward() {  
-canmove = true;  
-                    moveBackwardInterval = setInterval(function(){if (!canmove){return;}const dir = new THREE.Vector3();
+if (moveBackwardInterval) {clearInterval(moveBackwardInterval);}
+                    moveBackwardInterval = setInterval(function(){const dir = new THREE.Vector3();
         // 获取相机的视线方向
         camera.getWorldDirection(dir);
         const dis = dir.clone().multiplyScalar(-moveSpeed);  
@@ -719,36 +874,36 @@ canmove = true;
         }  
           
                 function startMovingLeft() {  
-canmove = true;  
+if (moveLeftInterval) {clearInterval(moveLeftInterval);}
                   const dir = new THREE.Vector3();  
         camera.getWorldDirection(dir);  
         const left = computeLeftVector(dir, up);  
-                    moveLeftInterval = setInterval(function(){if (!canmove){return;}const dis = left.clone().multiplyScalar(moveSpeed);  
+                    moveLeftInterval = setInterval(function(){const dis = left.clone().multiplyScalar(moveSpeed);  
             camera.position.add(dis);BoxFollow();}, 10);  
                 }  
                   
         const up = new THREE.Vector3(0, 1, 0);
                 function startMovingRight() {  
-canmove = true;  
+if (moveRightInterval) {clearInterval(moveRightInterval);}
         const dir = new THREE.Vector3();  
         camera.getWorldDirection(dir);  
         const left = computeLeftVector(dir, up);  
-                    moveRightInterval = setInterval(function(){if (!canmove){return;}const dis = left.clone().multiplyScalar(-moveSpeed);  
+                    moveRightInterval = setInterval(function(){const dis = left.clone().multiplyScalar(-moveSpeed);  
             camera.position.add(dis);BoxFollow();}  , 10);  
                 }  
                   
                 function startMovingDown() {  
-canmove = true;  
-                    moveDownInterval = setInterval(function(){if (!canmove){return;}moveCamera(0, -moveSpeed, 0);BoxFollow();}, 10);  
+if (moveDownInterval) {clearInterval(moveDownInterval);}
+                    moveDownInterval = setInterval(function(){moveCamera(0, -moveSpeed, 0);BoxFollow();}, 10);  
                 }  
         
                 function startMovingUp() {  
-canmove = true;  
-                    moveUpInterval = setInterval(function(){if (!canmove){return;}moveCamera(0, moveSpeed, 0);BoxFollow();}, 10);  
+if (moveUpInterval) {clearInterval(moveUpInterval);}
+                    moveUpInterval = setInterval(function(){moveCamera(0, moveSpeed, 0);BoxFollow();}, 10);  
                 }  
         
                 function stopMovingForward() {
-                    clearInterval(moveForwardInterval); 
+                    clearInterval(moveForwardInterval); console.log("qingchu");
                 }  
         
                 function stopMovingBackward() {
@@ -771,8 +926,6 @@ canmove = true;
                     clearInterval(moveUpInterval);  
                 }  
                 
-                // 初始化  
-                init();
     </script>
 </body>
 
